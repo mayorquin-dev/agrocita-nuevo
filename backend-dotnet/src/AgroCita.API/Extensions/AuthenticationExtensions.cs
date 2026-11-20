@@ -1,0 +1,84 @@
+using System.Text;
+using AgroCita.API.Middleware;
+using AgroCita.Infrastructure.Services.Security;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
+namespace AgroCita.API.Extensions;
+
+public static class AuthenticationExtensions
+{
+    public static IServiceCollection AddJwtAuthentication(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var jwtSettings = configuration
+            .GetSection(JwtSettings.SectionName)
+            .Get<JwtSettings>()
+            ?? throw new InvalidOperationException(
+                "No se encontró la configuración JWT.");
+
+        if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey) ||
+            string.IsNullOrWhiteSpace(jwtSettings.Issuer) ||
+            string.IsNullOrWhiteSpace(jwtSettings.Audience) ||
+            jwtSettings.ExpirationMinutes <= 0)
+        {
+            throw new InvalidOperationException(
+                "La configuración JWT está incompleta o es inválida.");
+        }
+
+        services.Configure<JwtSettings>(
+            configuration.GetSection(JwtSettings.SectionName));
+
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.MapInboundClaims = false;
+
+                options.TokenValidationParameters =
+                    new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtSettings.Issuer,
+
+                        ValidateAudience = true,
+                        ValidAudience = jwtSettings.Audience,
+
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromSeconds(30),
+
+                        NameClaimType = JwtClaims.UsuarioId,
+                        RoleClaimType = JwtClaims.Rol
+                    };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = context =>
+                    {
+                        context.HandleResponse();
+
+                        return ErrorResponses.WriteAsync(
+                            context.HttpContext,
+                            StatusCodes.Status401Unauthorized,
+                            "No autenticado",
+                            "Debe iniciar sesión para continuar.");
+                    },
+                    OnForbidden = context =>
+                        ErrorResponses.WriteAsync(
+                            context.HttpContext,
+                            StatusCodes.Status403Forbidden,
+                            "Acceso denegado",
+                            "Su rol no tiene permiso para realizar esta acción.")
+                };
+            });
+
+        services.AddAuthorization();
+
+        return services;
+    }
+}
