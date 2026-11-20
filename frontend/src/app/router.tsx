@@ -76,6 +76,7 @@ export const router = createBrowserRouter([
           { path: '/inicio', element: <Portada /> },
         ],
       },
+      { path: '/bienvenida', lazy: () => import('@/features/landing/LandingPage').then((m) => ({ Component: m.LandingPage })) },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
