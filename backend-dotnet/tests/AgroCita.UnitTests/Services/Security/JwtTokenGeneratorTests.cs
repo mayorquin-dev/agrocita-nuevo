@@ -32,20 +32,17 @@ public class JwtTokenGeneratorTests
     [Fact]
     public void GenerateToken_ShouldIncludeUserClaims()
     {
-        // Arrange
         const int userId = 15;
         const string email = "usuario@agrocita.com";
         const string role = "PRODUCTOR";
         const int companyId = 3;
 
-        // Act
         var tokenString = _generator.GenerateToken(
             userId, email, role, companyId);
 
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(tokenString);
 
-        // Assert
         Assert.Equal(userId.ToString(),
             token.Claims.First(c => c.Type == JwtClaims.UsuarioId).Value);
 
@@ -62,7 +59,6 @@ public class JwtTokenGeneratorTests
     [Fact]
     public void GenerateToken_WithoutCompany_ShouldNotIncludeCompanyId()
     {
-        // Act
         var tokenString = _generator.GenerateToken(
             15,
             "admin@agrocita.com",
@@ -72,7 +68,6 @@ public class JwtTokenGeneratorTests
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(tokenString);
 
-        // Assert
         Assert.DoesNotContain(
             token.Claims,
             claim => claim.Type == JwtClaims.EmpresaId);
@@ -81,7 +76,6 @@ public class JwtTokenGeneratorTests
     [Fact]
     public void GenerateToken_ShouldHaveCorrectIssuerAndAudience()
     {
-        // Act
         var tokenString = _generator.GenerateToken(
             15,
             "usuario@agrocita.com",
@@ -91,7 +85,6 @@ public class JwtTokenGeneratorTests
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(tokenString);
 
-        // Assert
         Assert.Equal("AgroCita", token.Issuer);
 
         Assert.Contains(
@@ -102,10 +95,8 @@ public class JwtTokenGeneratorTests
     [Fact]
     public void GenerateToken_ShouldExpireInConfiguredTime()
     {
-        // Arrange
         var beforeGeneration = DateTime.UtcNow;
 
-        // Act
         var tokenString = _generator.GenerateToken(
             15,
             "usuario@agrocita.com",
@@ -117,7 +108,6 @@ public class JwtTokenGeneratorTests
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(tokenString);
 
-        // Assert
         var expectedMinimum = beforeGeneration.AddMinutes(60);
         var expectedMaximum = afterGeneration.AddMinutes(60);
 
@@ -127,11 +117,9 @@ public class JwtTokenGeneratorTests
             expectedMaximum.AddSeconds(1));
     }
 
-    //Verifica la firma criptográfica, emisor, audiencia y vigencia del token
     [Fact]
     public void GenerateToken_ShouldHaveValidSignature()
     {
-        // Arrange
         var tokenString = _generator.GenerateToken(
             15,
             "usuario@agrocita.com",
@@ -156,13 +144,11 @@ public class JwtTokenGeneratorTests
             ClockSkew = TimeSpan.Zero
         };
 
-        // Act
         var principal = handler.ValidateToken(
             tokenString,
             validationParameters,
             out var validatedToken);
 
-        // Assert
         Assert.NotNull(principal);
         Assert.IsType<JwtSecurityToken>(validatedToken);
         Assert.Equal(

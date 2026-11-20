@@ -5,11 +5,6 @@ using FluentValidation;
 
 namespace AgroCita.UnitTests.Features.Auth.Login;
 
-/*
-Pruebas unitarias de LoginHandler para verificar
-que el proceso de autenticación funcione correctamente
-antes de realizar la conexión a PostgreSQL
-*/
 public class LoginHandlerTests
 {
     private readonly FakeAuthenticationRepository _repository;
@@ -36,7 +31,6 @@ public class LoginHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldReturnToken_WhenCredentialsAreCorrect()
     {
-        // Arrange
         _repository.User = new AuthenticationUser
         {
             Id = 1,
@@ -55,10 +49,8 @@ public class LoginHandlerTests
             "Password123"
         );
 
-        // Act
         var result = await _handler.HandleAsync(command);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Equal("token_jwt_de_prueba", result.AccessToken);
 
@@ -69,7 +61,6 @@ public class LoginHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldReturnNull_WhenUserDoesNotExist()
     {
-        // Arrange
         _repository.User = null;
 
         var command = new LoginCommand(
@@ -77,10 +68,8 @@ public class LoginHandlerTests
             "Password123"
         );
 
-        // Act
         var result = await _handler.HandleAsync(command);
 
-        // Assert
         Assert.Null(result);
 
         Assert.False(_passwordHashService.VerifyWasCalled);
@@ -90,7 +79,6 @@ public class LoginHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldReturnNull_WhenUserIsInactive()
     {
-        // Arrange
         _repository.User = new AuthenticationUser
         {
             Id = 1,
@@ -106,10 +94,8 @@ public class LoginHandlerTests
             "Password123"
         );
 
-        // Act
         var result = await _handler.HandleAsync(command);
 
-        // Assert
         Assert.Null(result);
 
         Assert.False(_passwordHashService.VerifyWasCalled);
@@ -119,7 +105,6 @@ public class LoginHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldReturnNull_WhenPasswordIsIncorrect()
     {
-        // Arrange
         _repository.User = new AuthenticationUser
         {
             Id = 1,
@@ -137,10 +122,8 @@ public class LoginHandlerTests
             "PasswordIncorrecta"
         );
 
-        // Act
         var result = await _handler.HandleAsync(command);
 
-        // Assert
         Assert.Null(result);
 
         Assert.True(_passwordHashService.VerifyWasCalled);
@@ -150,7 +133,6 @@ public class LoginHandlerTests
     [Fact]
     public async Task HandleAsync_ShouldTrimEmail_BeforeSearchingUser()
     {
-        // Arrange
         _repository.User = new AuthenticationUser
         {
             Id = 1,
@@ -168,10 +150,8 @@ public class LoginHandlerTests
             "Password123"
         );
 
-        // Act
         await _handler.HandleAsync(command);
 
-        // Assert
         Assert.Equal(
             "productor@agrocita.com",
             _repository.LastSearchedEmail
@@ -182,19 +162,14 @@ public class LoginHandlerTests
     
 public async Task HandleAsync_ShouldThrowValidationException_WhenCredentialsAreEmpty()
 {
-    // Arrange
     var command = new LoginCommand("", "");
 
-    // Act
     var exception = await Assert.ThrowsAsync<ValidationException>(
         async () => await _handler.HandleAsync(command)
     );
 
-    // Assert
     Assert.NotEmpty(exception.Errors);
 }
-
-    // Objetos simulados para las dependencias del LoginHandler.
 
     private class FakeAuthenticationRepository : IAuthenticationRepository
     {

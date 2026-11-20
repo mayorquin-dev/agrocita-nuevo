@@ -11,7 +11,6 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Registrar servicios.
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -38,7 +37,6 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod()
         .WithExposedHeaders("Location")));
 
-// Configuración de OpenAPI y autenticación Bearer.
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
@@ -87,14 +85,12 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
-// Autenticación JWT.
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
 await DbInitializer.InitializeAsync(app.Services, app.Configuration);
 
-// Página principal.
 app.MapGet("/", () =>
 {
     return Results.Ok(new
@@ -106,14 +102,12 @@ app.MapGet("/", () =>
     });
 });
 
-// Configuración de desarrollo.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 
     app.MapScalarApiReference();
 
-    // Diagnóstico de PostgreSQL.
     app.MapGet("/api/diagnostics/database", async (AgroCitaDbContext db) =>
     {
         var canConnect = await db.Database.CanConnectAsync();
