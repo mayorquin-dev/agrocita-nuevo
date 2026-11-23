@@ -44,8 +44,40 @@ public class AgroCitaDbContext : DbContext
     public DbSet<Report> Reports => Set<Report>();
     public DbSet<VisitEvidence> VisitEvidences => Set<VisitEvidence>();
     public DbSet<Prescription> Prescriptions => Set<Prescription>();
+    public DbSet<Supply> Supplies => Set<Supply>();
+    public DbSet<SupplyMovement> SupplyMovements => Set<SupplyMovement>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        AsignarEmpresa();
+
+        var auditoria = Auditoria.Capturar(ChangeTracker, _currentUserService);
+
+        if (auditoria.Count == 0)
+        {
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        var transaccionPropia = Database.CurrentTransaction is null;
+        await using var transaccion = transaccionPropia
+            ? await Database.BeginTransactionAsync(cancellationToken)
+            : null;
+
+        var filas = await base.SaveChangesAsync(cancellationToken);
+
+        AuditLogs.AddRange(auditoria.Select(pendiente => pendiente.Construir()));
+        await base.SaveChangesAsync(cancellationToken);
+
+        if (transaccion is not null)
+        {
+            await transaccion.CommitAsync(cancellationToken);
+        }
+
+        return filas;
+    }
+
+    private void AsignarEmpresa()
     {
         if (EmpresaId is int empresaId)
         {
@@ -65,8 +97,6 @@ public class AgroCitaDbContext : DbContext
                 }
             }
         }
-
-        return base.SaveChangesAsync(cancellationToken);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -313,6 +343,59 @@ public class AgroCitaDbContext : DbContext
             entity.HasOne(e => e.Cultivo).WithMany().HasForeignKey(e => e.CultivoId);
             entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UsuarioId);
             entity.HasIndex(e => new { e.VisitaId, e.FechaCaptura });
+        });
+
+        modelBuilder.Entity<Company>(entity =>
+        {
+            entity.Property(e => e.LogoArchivo).HasMaxLength(200);
+            entity.Property(e => e.LogoContentType).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<Supply>(entity =>
+        {
+            entity.ToTable("Insumo");
+            entity.Property(i => i.Nombre).IsRequired().HasMaxLength(120);
+            entity.Property(i => i.Tipo).HasConversion<string>().HasMaxLength(20);
+            entity.Property(i => i.Unidad).IsRequired().HasMaxLength(30);
+            entity.Property(i => i.Presentacion).HasMaxLength(80);
+            entity.Property(i => i.Stock).HasPrecision(12, 3);
+            entity.Property(i => i.StockMinimo).HasPrecision(12, 3);
+            entity.HasIndex(i => new { i.EmpresaId, i.Nombre }).IsUnique();
+        });
+
+        modelBuilder.Entity<SupplyMovement>(entity =>
+        {
+            entity.ToTable("MovimientoInsumo");
+            entity.Property(m => m.Tipo).HasConversion<string>().HasMaxLength(20);
+            entity.Property(m => m.Cantidad).HasPrecision(12, 3);
+            entity.Property(m => m.StockResultante).HasPrecision(12, 3);
+            entity.Property(m => m.Nota).HasMaxLength(300);
+            entity.HasOne(m => m.Insumo).WithMany().HasForeignKey(m => m.InsumoId);
+            entity.HasOne(m => m.Productor).WithMany().HasForeignKey(m => m.ProductorId);
+            entity.HasOne(m => m.Receta).WithMany(r => r.Entregas).HasForeignKey(m => m.RecetaId);
+            entity.HasOne(m => m.Usuario).WithMany().HasForeignKey(m => m.UsuarioId);
+            entity.HasIndex(m => new { m.InsumoId, m.Fecha });
+            entity.HasIndex(m => new { m.ProductorId, m.Fecha });
+        });
+
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.ToTable("Auditoria");
+            entity.Property(a => a.Rol).HasMaxLength(30);
+            entity.Property(a => a.Entidad).IsRequired().HasMaxLength(60);
+            entity.Property(a => a.EntidadId).IsRequired().HasMaxLength(60);
+            entity.Property(a => a.Accion).HasConversion<string>().HasMaxLength(20);
+            entity.Property(a => a.Cambios).IsRequired().HasColumnType("jsonb");
+            entity.HasOne(a => a.Usuario).WithMany().HasForeignKey(a => a.UsuarioId);
+            entity.HasOne<Company>().WithMany().HasForeignKey(a => a.EmpresaId);
+            entity.HasIndex(a => new { a.EmpresaId, a.Fecha });
+            entity.HasIndex(a => new { a.EmpresaId, a.Entidad, a.EntidadId });
+            entity.HasQueryFilter(a => EmpresaId != null && a.EmpresaId == EmpresaId);
+        });
+
+        modelBuilder.Entity<Prescription>(entity =>
+        {
+            entity.HasOne(r => r.Insumo).WithMany().HasForeignKey(r => r.InsumoId);
         });
 
         modelBuilder.Entity<Prescription>(entity =>

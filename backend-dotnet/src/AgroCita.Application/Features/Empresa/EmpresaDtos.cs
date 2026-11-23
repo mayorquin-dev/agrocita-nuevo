@@ -11,7 +11,8 @@ public record EmpresaDto(
     string Telefono,
     string? Direccion,
     string CodigoInvitacion,
-    bool Activa);
+    bool Activa,
+    bool TieneLogo = false);
 
 public record SuscripcionDto(
     int Id,
@@ -31,7 +32,8 @@ public static class EmpresaMapeos
         empresa.Telefono,
         empresa.Direccion,
         empresa.CodigoInvitacion,
-        empresa.Activa);
+        empresa.Activa,
+        empresa.LogoArchivo is not null);
 
     public static SuscripcionDto ADto(this Subscription suscripcion) => new(
         suscripcion.Id,

@@ -15,7 +15,8 @@ public record CrearRecetaDto(
     string Unidad,
     string? MetodoAplicacion,
     DateOnly? FechaAplicacion,
-    string? Indicaciones);
+    string? Indicaciones,
+    int? InsumoId = null);
 
 public record SeguimientoRecetaDto(
     PrescriptionStatus? Estado,
@@ -42,7 +43,10 @@ public record RecetaDto(
     DateTime? FechaRegistroSeguimiento,
     string? RegistradoPor,
     bool Vencida,
-    DateTime FechaCreacion);
+    DateTime FechaCreacion,
+    ReferenciaDto? Insumo,
+    decimal CantidadEntregada,
+    string? UnidadEntregada);
 
 public static class RecetaMapeos
 {
@@ -51,7 +55,9 @@ public static class RecetaMapeos
         "Cultivo",
         "Visita.Solicitud.Finca.Productor.Usuario",
         "Visita.Tecnico.Usuario",
-        "UsuarioSeguimiento"
+        "UsuarioSeguimiento",
+        "Insumo",
+        "Entregas.Insumo"
     ];
 
     public static RecetaDto ADto(this Prescription receta)
@@ -79,7 +85,10 @@ public static class RecetaMapeos
             receta.FechaRegistroSeguimiento,
             receta.UsuarioSeguimiento?.NombreCompleto,
             receta.EstaVencida(Fechas.Hoy),
-            receta.FechaCreacion);
+            receta.FechaCreacion,
+            receta.Insumo is null ? null : new ReferenciaDto(receta.Insumo.Id, receta.Insumo.Nombre),
+            receta.Entregas.Where(e => e.Tipo == MovementType.Entrega).Sum(e => e.Cantidad),
+            receta.Insumo?.Unidad ?? receta.Entregas.Select(e => e.Insumo?.Unidad).FirstOrDefault(u => u is not null));
     }
 }
 

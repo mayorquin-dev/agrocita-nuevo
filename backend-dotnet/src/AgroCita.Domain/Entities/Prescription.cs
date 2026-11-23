@@ -12,6 +12,8 @@ public class Prescription : ITenantEntity
 
     public int CultivoId { get; set; }
 
+    public int? InsumoId { get; set; }
+
     public string Producto { get; set; } = string.Empty;
 
     public ProductType TipoProducto { get; set; }
@@ -43,6 +45,10 @@ public class Prescription : ITenantEntity
     public Crop? Cultivo { get; set; }
 
     public User? UsuarioSeguimiento { get; set; }
+
+    public Supply? Insumo { get; set; }
+
+    public ICollection<SupplyMovement> Entregas { get; set; } = new List<SupplyMovement>();
 
     public bool EstaVencida(DateOnly hoy) =>
         Estado == PrescriptionStatus.Pendiente && FechaAplicacion < hoy;

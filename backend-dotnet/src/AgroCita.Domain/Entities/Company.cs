@@ -16,6 +16,10 @@ public class Company
 
     public string CodigoInvitacion { get; set; } = string.Empty;
 
+    public string? LogoArchivo { get; set; }
+
+    public string? LogoContentType { get; set; }
+
     public bool Activa { get; set; }
 
     public DateTime FechaRegistro { get; set; }

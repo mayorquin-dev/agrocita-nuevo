@@ -66,6 +66,8 @@ export const router = createBrowserRouter([
               soloPara(['AdminEmpresa'], [
                 { path: '/agenda', lazy: () => import('@/features/visitas/AgendaPage').then((m) => ({ Component: m.AgendaPage })) },
                 { path: '/indicadores', lazy: () => import('@/features/indicadores/IndicadoresPage').then((m) => ({ Component: m.IndicadoresPage })) },
+                { path: '/inventario', lazy: () => import('@/features/inventario/InventarioPage').then((m) => ({ Component: m.InventarioPage })) },
+                { path: '/auditoria', lazy: () => import('@/features/auditoria/AuditoriaPage').then((m) => ({ Component: m.AuditoriaPage })) },
                 { path: '/productores', lazy: () => import('@/features/productores/ProductoresPage').then((m) => ({ Component: m.ProductoresPage })) },
                 {
                   path: '/productores/:id',

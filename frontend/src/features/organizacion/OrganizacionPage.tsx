@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
-import { Check, Copy, RefreshCw } from 'lucide-react'
-import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Check, Copy, ImageIcon, RefreshCw, Trash2, Upload } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { useArchivoProtegido } from '@/shared/api/archivos'
 import { useAccion } from '@/shared/forms/mutations'
 import { formato } from '@/shared/lib/format'
 import { EstadoBadge } from '@/shared/ui/Badge'
@@ -68,6 +69,67 @@ function CodigoInvitacion({ codigo }: { codigo: string }) {
         </ModalActions>
       </Modal>
     </section>
+  )
+}
+
+function LogoEmpresa({ tieneLogo }: { tieneLogo: boolean }) {
+  const queryClient = useQueryClient()
+  const entrada = useRef<HTMLInputElement>(null)
+  const [version, setVersion] = useState(0)
+  const { url } = useArchivoProtegido(tieneLogo ? `/empresa/logo?v=${version}` : null)
+
+  const alCambiar = async () => {
+    await queryClient.invalidateQueries({ queryKey: organizacionKeys.empresa })
+    setVersion((actual) => actual + 1)
+  }
+
+  const subir = useAccion({
+    mutationFn: organizacionApi.subirLogo,
+    mensaje: 'Logo actualizado. Aparecerá en los informes PDF.',
+    alExito: () => void alCambiar(),
+  })
+
+  const quitar = useAccion({
+    mutationFn: organizacionApi.eliminarLogo,
+    mensaje: 'Logo eliminado.',
+    alExito: () => void alCambiar(),
+  })
+
+  return (
+    <Card>
+      <CardHeader titulo="Logo" numero="03" descripcion="Se imprime en el encabezado de los informes PDF que reciben los productores." />
+      <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center md:px-6">
+        <div className="grid h-24 w-44 shrink-0 place-items-center overflow-hidden rounded-xl border border-dashed border-line bg-white p-2">
+          {url ? <img src={url} alt="Logo de la organización" className="max-h-full max-w-full object-contain" /> : <ImageIcon className="size-6 text-[#9aa39c]" aria-hidden />}
+        </div>
+        <div className="flex flex-col gap-2">
+          <p className="text-[13px] text-ink-soft">PNG, JPG o WEBP de hasta 2 MB. Mejor con fondo transparente o blanco.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button tamano="sm" icono={<Upload className="size-3.5" />} cargando={subir.isPending} onClick={() => entrada.current?.click()}>
+              {tieneLogo ? 'Cambiar logo' : 'Subir logo'}
+            </Button>
+            {tieneLogo && (
+              <Button tamano="sm" variante="fantasma" icono={<Trash2 className="size-3.5" />} cargando={quitar.isPending} onClick={() => quitar.mutate()}>
+                Quitar
+              </Button>
+            )}
+          </div>
+        </div>
+        <input
+          ref={entrada}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="sr-only"
+          tabIndex={-1}
+          aria-hidden
+          onChange={(evento) => {
+            const archivo = evento.target.files?.[0]
+            if (archivo) subir.mutate(archivo)
+            evento.target.value = ''
+          }}
+        />
+      </div>
+    </Card>
   )
 }
 
@@ -139,6 +201,8 @@ export function OrganizacionPage() {
                 </div>
               </Card>
             </div>
+
+            <LogoEmpresa tieneLogo={datos.tieneLogo} />
           </div>
         )}
       </QueryView>

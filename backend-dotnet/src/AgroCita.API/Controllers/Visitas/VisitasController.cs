@@ -12,8 +12,18 @@ namespace AgroCita.API.Controllers.Visitas;
 public class VisitasController(
     VisitasHandler visitas,
     CalidadHandler calidad,
-    InformesHandler informes) : ControllerBase
+    InformesHandler informes,
+    InformePdfHandler informePdf) : ControllerBase
 {
+    [HttpGet("{id:int}/informe/pdf")]
+    [Authorize(Roles = Permisos.Empresa)]
+    public async Task<IActionResult> InformePdf(int id, CancellationToken ct)
+    {
+        var (contenido, nombre) = await informePdf.GenerarAsync(id, ct);
+
+        return File(contenido, "application/pdf", nombre);
+    }
+
     [HttpPost]
     [Authorize(Roles = Permisos.Admin)]
     public async Task<ActionResult<VisitaDto>> Crear(

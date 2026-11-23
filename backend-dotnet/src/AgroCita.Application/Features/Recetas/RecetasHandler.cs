@@ -11,6 +11,7 @@ namespace AgroCita.Application.Features.Recetas;
 public class RecetasHandler(
     ActorActual actor,
     IRepository<Prescription> recetas,
+    IRepository<Supply> insumos,
     IUnitOfWork unitOfWork,
     IValidator<CrearRecetaDto> crearValidator,
     IValidator<SeguimientoRecetaDto> seguimientoValidator)
@@ -31,10 +32,17 @@ public class RecetasHandler(
             throw Errores.Campo(nameof(dto.CultivoId), "El cultivo no pertenece a esta visita.");
         }
 
+        if (dto.InsumoId is int insumoId &&
+            !await insumos.AnyAsync(i => i.Id == insumoId && i.Activo, ct: ct))
+        {
+            throw Errores.Campo(nameof(dto.InsumoId), "El insumo no existe o está inactivo.");
+        }
+
         var receta = new Prescription
         {
             VisitaId = visita.Id,
             CultivoId = dto.CultivoId,
+            InsumoId = dto.InsumoId,
             Producto = dto.Producto.Trim(),
             TipoProducto = dto.TipoProducto!.Value,
             Dosis = dto.Dosis!.Value,
@@ -125,6 +133,11 @@ public class RecetasHandler(
         {
             throw new ConflictException(
                 "Solo se elimina una receta pendiente mientras la visita está en proceso.");
+        }
+
+        if (await recetas.AnyAsync(r => r.Id == id && r.Entregas.Any(), ct: ct))
+        {
+            throw new ConflictException("La receta ya tiene insumos entregados y no se puede eliminar.");
         }
 
         recetas.Remove(receta);

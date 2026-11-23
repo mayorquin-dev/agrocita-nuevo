@@ -117,7 +117,7 @@ public class TrazabilidadHandler(
 
         var listaRecetas = (await recetas.ListAsync(
                 r => r.CultivoId == cultivoId,
-                incluir: ["Visita.Tecnico.Usuario", "UsuarioSeguimiento"],
+                incluir: ["Visita.Tecnico.Usuario", "UsuarioSeguimiento", "Entregas.Insumo", "Entregas.Usuario"],
                 ct: ct))
             .Where(r => EnRango(r.FechaCreacion))
             .ToList();
@@ -226,6 +226,18 @@ public class TrazabilidadHandler(
                 receta.Visita?.Tecnico?.Usuario?.NombreCompleto,
                 receta.Estado.ToString(),
                 receta.VisitaId));
+
+            foreach (var entrega in receta.Entregas.Where(e => e.Tipo == MovementType.Entrega))
+            {
+                eventos.Add(new EventoTrazaDto(
+                    entrega.Fecha.InicioUtc().AddHours(18),
+                    "Entrega",
+                    $"Insumo entregado · {entrega.Insumo?.Nombre ?? receta.Producto}",
+                    $"{Numero(entrega.Cantidad)} {entrega.Insumo?.Unidad}{(entrega.Nota is null ? "" : $". {entrega.Nota}")}",
+                    entrega.Usuario?.NombreCompleto,
+                    null,
+                    receta.VisitaId));
+            }
 
             if (receta.FechaRegistroSeguimiento is DateTime registrado)
             {

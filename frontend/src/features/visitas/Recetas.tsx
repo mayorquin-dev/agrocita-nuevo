@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { CalendarClock, Check, FlaskConical, Pill, Trash2, X } from 'lucide-react'
+import { CalendarClock, Check, FlaskConical, Package, Pill, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { z } from 'zod'
@@ -14,12 +14,15 @@ import { FormError, Input, Select, Textarea } from '@/shared/ui/Field'
 import { EmptyState, QueryView } from '@/shared/ui/feedback'
 import { Card, CardHeader, PageHeader, Segmented } from '@/shared/ui/layout'
 import { Modal, ModalActions } from '@/shared/ui/Modal'
+import { inventarioApi, inventarioKeys } from '@/features/inventario/api'
+import { MisEntregas, MovimientoForm } from '@/features/inventario/InventarioPage'
 import { recetasApi, recetasKeys, TIPOS_PRODUCTO, visitasApi, visitasKeys } from './api'
 import type { Receta, VisitaDetalle } from './api'
 
 const UNIDADES = ['kg/mz', 'g/bomba', 'L/mz', 'ml/bomba', 'cc/L', 'g/planta', 'qq/mz', 'oz/mz']
 
 const recetaSchema = z.object({
+  insumoId: z.number().int().positive().optional(),
   cultivoId: reglas.id('El cultivo es obligatorio.'),
   producto: reglas.texto('El producto es obligatorio.', 120, 'El producto no puede superar los 120 caracteres.'),
   tipoProducto: z.enum(TIPOS_PRODUCTO, { error: 'El tipo de producto es obligatorio.' }),
@@ -55,7 +58,10 @@ const seguimientoSchema = z
 const INVALIDAR_RECETAS = [recetasKeys.todas, ['visitas', 'recetas'], ['trazabilidad']]
 
 function RecetaForm({ visita, alCerrar }: { visita: VisitaDetalle; alCerrar: () => void }) {
+  const insumos = useQuery({ queryKey: [...inventarioKeys.insumos, 'activos'], queryFn: () => inventarioApi.listar(true) })
+
   const form = useZodForm(recetaSchema, {
+    insumoId: undefined,
     cultivoId: visita.cultivos.length === 1 ? visita.cultivos[0].id : undefined,
     producto: '',
     tipoProducto: undefined,
@@ -91,6 +97,29 @@ function RecetaForm({ visita, alCerrar }: { visita: VisitaDetalle; alCerrar: () 
             </option>
           ))}
         </Select>
+        {insumos.data && insumos.data.length > 0 && (
+          <Select
+            etiqueta="Del inventario de la organización"
+            opcional
+            ayuda="Si eliges un insumo, la organización podrá entregarlo ligado a esta receta."
+            {...register('insumoId', {
+              setValueAs: (valor: unknown) => (valor === '' || valor == null ? undefined : Number(valor)),
+              onChange: (evento: React.ChangeEvent<HTMLSelectElement>) => {
+                const elegido = insumos.data?.find((i) => i.id === Number(evento.target.value))
+                if (!elegido) return
+                setValue('producto', elegido.nombre, { shouldValidate: true })
+                setValue('tipoProducto', elegido.tipo, { shouldValidate: true })
+              },
+            })}
+          >
+            <option value="">Otro producto (escribirlo)</option>
+            {insumos.data.map((insumo) => (
+              <option key={insumo.id} value={insumo.id}>
+                {insumo.nombre} · {formato.numero(insumo.stock)} {insumo.unidad} disponibles
+              </option>
+            ))}
+          </Select>
+        )}
         <div className="grid gap-4 sm:grid-cols-[1.4fr_1fr]">
           <Input etiqueta="Producto" placeholder="Oxicloruro de cobre 50 WP" error={errors.producto?.message} {...register('producto')} />
           <Select etiqueta="Tipo" error={errors.tipoProducto?.message} {...register('tipoProducto', comoTextoOpcional)}>
@@ -248,6 +277,8 @@ export function RecetaItem({
   puedeEliminar?: boolean
   alSeguimiento: (receta: Receta) => void
 }) {
+  const esAdmin = useUsuario().rol === 'AdminEmpresa'
+  const [entregando, setEntregando] = useState(false)
   const eliminar = useAccion({
     mutationFn: () => recetasApi.eliminar(receta.id),
     invalidar: INVALIDAR_RECETAS,
@@ -287,6 +318,14 @@ export function RecetaItem({
           )}
         </p>
         {receta.indicaciones && <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">{receta.indicaciones}</p>}
+        {(receta.insumo || receta.cantidadEntregada > 0) && (
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-lake-soft px-2.5 py-1 text-[12.5px] text-lake">
+            <Package className="size-3.5" aria-hidden />
+            {receta.cantidadEntregada > 0
+              ? `Entregado por la organización: ${formato.numero(receta.cantidadEntregada)} ${receta.unidadEntregada ?? ''}`.trim()
+              : 'Del inventario de la organización · sin entregar'}
+          </p>
+        )}
         {receta.estado !== 'Pendiente' && (
           <p className="mt-2 rounded-lg bg-paper px-3 py-2 text-[13px] text-ink-soft">
             {receta.estado === 'Aplicada' ? `Aplicado el ${formato.fecha(receta.fechaAplicacionReal)}` : 'No se aplicó'}
@@ -301,12 +340,18 @@ export function RecetaItem({
             {receta.estado === 'Pendiente' ? '¿Se aplicó?' : 'Corregir'}
           </Button>
         )}
-        {puedeEliminar && receta.estado === 'Pendiente' && (
+        {esAdmin && receta.estado !== 'NoAplicada' && (
+          <Button tamano="sm" variante="secundario" icono={<Package className="size-3.5" />} onClick={() => setEntregando(true)}>
+            Entregar insumo
+          </Button>
+        )}
+        {puedeEliminar && receta.estado === 'Pendiente' && receta.cantidadEntregada === 0 && (
           <Button tamano="sm" variante="fantasma" aria-label={`Eliminar receta ${receta.producto}`} icono={<Trash2 className="size-3.5" />} cargando={eliminar.isPending} onClick={() => eliminar.mutate()}>
             Quitar
           </Button>
         )}
       </div>
+      {entregando && <MovimientoForm receta={receta} alCerrar={() => setEntregando(false)} />}
     </li>
   )
 }
@@ -436,6 +481,11 @@ export function RecetasPage() {
       <Card className="animate-rise overflow-hidden">
         <RecetasLista filtro={filtro} />
       </Card>
+      {usuario.rol === 'Productor' && (
+        <div className="mt-6">
+          <MisEntregas />
+        </div>
+      )}
     </>
   )
 }

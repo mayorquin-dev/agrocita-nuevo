@@ -47,6 +47,7 @@ public static class DependencyInjection
             configuration["Almacenamiento:Ruta"] ??
             Path.Combine(Directory.GetCurrentDirectory(), "almacenamiento")));
         services.AddSingleton<IExcelExporter, ClosedXmlExcelExporter>();
+        services.AddSingleton<AgroCita.Application.Features.Informes.IInformePdfGenerator, QuestInformePdfGenerator>();
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();

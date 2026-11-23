@@ -27,7 +27,9 @@ import { EmptyState, QueryView } from '@/shared/ui/feedback'
 import { Card, CardHeader, Dato, PageHeader } from '@/shared/ui/layout'
 import { visitasApi, visitasKeys } from './api'
 import type { EstadoVisita, VisitaDetalle } from './api'
+import { HistorialCambios } from '@/features/auditoria/HistorialCambios'
 import { CerrarVisitaForm, FirmaCard } from './CerrarVisita'
+import { InformePdfAcciones } from './InformePdf'
 import { EvidenciasCard } from './Evidencias'
 import { RecetasCard } from './Recetas'
 import { CancelarVisitaForm, ReprogramarForm } from './VisitaForms'
@@ -263,12 +265,15 @@ function Contenido({ visita }: { visita: VisitaDetalle }) {
             titulo="Informe de la visita"
             numero="03"
             accion={
-              esTecnico &&
-              enCampo &&
-              !visita.tieneInforme && (
-                <Button tamano="sm" variante="acento" icono={<FileText className="size-3.5" />} onClick={() => setModal('informe')}>
-                  Elaborar informe
-                </Button>
+              visita.tieneInforme ? (
+                <InformePdfAcciones visita={visita} />
+              ) : (
+                esTecnico &&
+                enCampo && (
+                  <Button tamano="sm" variante="acento" icono={<FileText className="size-3.5" />} onClick={() => setModal('informe')}>
+                    Elaborar informe
+                  </Button>
+                )
               )
             }
           />
@@ -304,6 +309,8 @@ function Contenido({ visita }: { visita: VisitaDetalle }) {
         <FirmaCard visita={visita} />
 
         {esAdmin && <Reprogramaciones visitaId={visita.id} />}
+
+        {esAdmin && <HistorialCambios entidad="Visita" entidadId={visita.id} />}
       </div>
 
       {modal === 'cancelar' && <CancelarVisitaForm visita={visita} alCerrar={() => setModal(null)} />}

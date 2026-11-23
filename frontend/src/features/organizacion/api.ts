@@ -10,6 +10,7 @@ export interface Empresa {
   direccion: string | null
   codigoInvitacion: string
   activa: boolean
+  tieneLogo: boolean
 }
 
 export const ESTADOS_SUSCRIPCION = ['Activa', 'Vencida', 'Suspendida', 'Cancelada'] as const
@@ -33,4 +34,10 @@ export const organizacionApi = {
   empresa: () => http.get<Empresa>('/empresa').then((r) => r.data),
   suscripcion: () => http.get<Suscripcion>('/empresa/suscripcion').then((r) => r.data),
   regenerarCodigo: () => http.post<Empresa>('/empresa/codigo-invitacion').then((r) => r.data),
+  subirLogo: (archivo: File) => {
+    const form = new FormData()
+    form.append('archivo', archivo)
+    return http.post<Empresa>('/empresa/logo', form).then((r) => r.data)
+  },
+  eliminarLogo: () => http.delete<Empresa>('/empresa/logo').then((r) => r.data),
 }

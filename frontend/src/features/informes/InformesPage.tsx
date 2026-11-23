@@ -1,12 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowUpRight, FileText } from 'lucide-react'
+import { ArrowUpRight, Download, FileText } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { descargarArchivo } from '@/shared/api/archivos'
 import { formato } from '@/shared/lib/format'
+import { Button } from '@/shared/ui/Button'
 import { EmptyState, QueryView } from '@/shared/ui/feedback'
 import { PageHeader } from '@/shared/ui/layout'
+import { useToast } from '@/shared/ui/Toast'
 import { informesApi, informesKeys } from './api'
 
 export function InformesPage() {
+  const toast = useToast()
   const informes = useQuery({ queryKey: informesKeys.mios, queryFn: informesApi.mios })
 
   return (
@@ -28,10 +32,10 @@ export function InformesPage() {
           ) : (
             <ol className="stagger overflow-hidden rounded-2xl border border-line bg-card shadow-sheet">
               {lista.map((informe) => (
-                <li key={informe.id} className="border-b border-line-soft last:border-0">
+                <li key={informe.id} className="flex items-center border-b border-line-soft pr-4 last:border-0 md:pr-5">
                   <Link
                     to={`/visitas/${informe.visitaId}`}
-                    className="group grid grid-cols-[72px_1fr_auto] items-center gap-4 px-5 py-4 transition hover:bg-ochre-soft/25 md:px-6"
+                    className="group grid min-w-0 flex-1 grid-cols-[72px_1fr_auto] items-center gap-4 px-5 py-4 transition hover:bg-ochre-soft/25 md:px-6"
                   >
                     <div className="text-center">
                       <p className="font-display text-3xl leading-none">{formato.dia(informe.fecha)}</p>
@@ -43,6 +47,19 @@ export function InformesPage() {
                     </div>
                     <ArrowUpRight className="size-5 text-ink-faint transition group-hover:text-forest" aria-hidden />
                   </Link>
+                  <Button
+                    tamano="sm"
+                    variante="secundario"
+                    aria-label={`Descargar PDF del informe de ${informe.finca.nombre}`}
+                    icono={<Download className="size-3.5" />}
+                    onClick={() =>
+                      void descargarArchivo(`/visitas/${informe.visitaId}/informe/pdf`, `informe-visita-V${String(informe.visitaId).padStart(4, '0')}.pdf`).catch(
+                        (error: unknown) => toast.error(error),
+                      )
+                    }
+                  >
+                    PDF
+                  </Button>
                 </li>
               ))}
             </ol>

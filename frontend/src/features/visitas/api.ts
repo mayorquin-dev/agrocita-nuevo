@@ -64,9 +64,13 @@ export interface Receta {
   registradoPor: string | null
   vencida: boolean
   fechaCreacion: string
+  insumo: Referencia | null
+  cantidadEntregada: number
+  unidadEntregada: string | null
 }
 
 export interface NuevaReceta {
+  insumoId?: number
   cultivoId: number
   producto: string
   tipoProducto: TipoProducto
