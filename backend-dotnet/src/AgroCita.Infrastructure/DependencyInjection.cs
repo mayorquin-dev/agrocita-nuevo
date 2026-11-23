@@ -8,6 +8,7 @@ using AgroCita.Application.Common.Interfaces;
 using AgroCita.Infrastructure.Services.Security;
 using AgroCita.Infrastructure.Persistence.Repositories;
 using AgroCita.Application.Features.Auth.Login;
+using AgroCita.Infrastructure.Services.Archivos;
 
 namespace AgroCita.Infrastructure;
 
@@ -41,6 +42,11 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IPasswordHashService, PasswordHashService>();
         services.AddScoped<IAuthenticationRepository, AuthenticationRepository>();
+
+        services.AddSingleton<IFileStorage>(new LocalFileStorage(
+            configuration["Almacenamiento:Ruta"] ??
+            Path.Combine(Directory.GetCurrentDirectory(), "almacenamiento")));
+        services.AddSingleton<IExcelExporter, ClosedXmlExcelExporter>();
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();

@@ -89,7 +89,7 @@ export function Card({ children, className }: { children: ReactNode; className?:
   return (
     <section
       className={clsx(
-        'rounded-[22px] border border-line/80 bg-card shadow-sheet ring-1 ring-white/60 ring-inset',
+        'rounded-[22px] border border-line/80 bg-card shadow-sheet',
         className,
       )}
     >
@@ -110,7 +110,7 @@ export function CardHeader({ titulo, descripcion, accion, numero }: CardHeaderPr
     <div className="flex items-start justify-between gap-4 border-b border-line-soft px-5 py-4 md:px-6">
       <div className="flex min-w-0 items-start gap-3">
         {numero && (
-          <span className="mt-0.5 rounded-md bg-forest px-1.5 py-0.5 font-mono text-[10.5px] font-medium text-ochre">{numero}</span>
+          <span className="superficie-oscura mt-0.5 rounded-md bg-forest px-1.5 py-0.5 font-mono text-[10.5px] font-medium text-ochre">{numero}</span>
         )}
         <div className="min-w-0">
           <h2 className="text-[19px] leading-tight font-semibold tracking-[-0.025em]">{titulo}</h2>

@@ -552,6 +552,87 @@ namespace AgroCita.Infrastructure.Persistence.Migrations
                     b.ToTable("Plan", (string)null);
                 });
 
+            modelBuilder.Entity("AgroCita.Domain.Entities.Prescription", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ComentarioSeguimiento")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("CultivoId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Dosis")
+                        .HasPrecision(10, 3)
+                        .HasColumnType("numeric(10,3)");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateOnly>("FechaAplicacion")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("FechaAplicacionReal")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("FechaRegistroSeguimiento")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Indicaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("MetodoAplicacion")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Producto")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("TipoProducto")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Unidad")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int?>("UsuarioSeguimientoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("VisitaId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioSeguimientoId");
+
+                    b.HasIndex("VisitaId");
+
+                    b.HasIndex("CultivoId", "FechaAplicacion");
+
+                    b.HasIndex("EmpresaId", "Estado", "FechaAplicacion");
+
+                    b.ToTable("RecetaManejo", (string)null);
+                });
+
             modelBuilder.Entity("AgroCita.Domain.Entities.Producer", b =>
                 {
                     b.Property<int>("Id")
@@ -843,8 +924,28 @@ namespace AgroCita.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("FechaFirma")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("FechaProgramada")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("FechaSeguimiento")
+                        .HasColumnType("date");
+
+                    b.Property<string>("FirmaArchivo")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<double?>("FirmaLatitud")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("FirmaLongitud")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("FirmadoPor")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<string>("MotivoCancelacion")
                         .HasMaxLength(250)
@@ -865,6 +966,71 @@ namespace AgroCita.Infrastructure.Persistence.Migrations
                     b.HasIndex("TecnicoId", "FechaProgramada");
 
                     b.ToTable("Visita", (string)null);
+                });
+
+            modelBuilder.Entity("AgroCita.Domain.Entities.VisitEvidence", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Archivo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("CultivoId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("FechaCaptura")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("FechaRegistro")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double?>("Latitud")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("Longitud")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("PrecisionMetros")
+                        .HasColumnType("double precision");
+
+                    b.Property<long>("TamanoBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("VisitaId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CultivoId");
+
+                    b.HasIndex("EmpresaId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("VisitaId", "FechaCaptura");
+
+                    b.ToTable("EvidenciaVisita", (string)null);
                 });
 
             modelBuilder.Entity("AgroCita.Domain.Entities.VisitReschedule", b =>
@@ -1158,6 +1324,38 @@ namespace AgroCita.Infrastructure.Persistence.Migrations
                     b.Navigation("ParametroEvaluacion");
                 });
 
+            modelBuilder.Entity("AgroCita.Domain.Entities.Prescription", b =>
+                {
+                    b.HasOne("AgroCita.Domain.Entities.Crop", "Cultivo")
+                        .WithMany()
+                        .HasForeignKey("CultivoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgroCita.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("EmpresaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgroCita.Domain.Entities.User", "UsuarioSeguimiento")
+                        .WithMany()
+                        .HasForeignKey("UsuarioSeguimientoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgroCita.Domain.Entities.Visit", "Visita")
+                        .WithMany("Recetas")
+                        .HasForeignKey("VisitaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cultivo");
+
+                    b.Navigation("UsuarioSeguimiento");
+
+                    b.Navigation("Visita");
+                });
+
             modelBuilder.Entity("AgroCita.Domain.Entities.Producer", b =>
                 {
                     b.HasOne("AgroCita.Domain.Entities.Company", null)
@@ -1280,6 +1478,38 @@ namespace AgroCita.Infrastructure.Persistence.Migrations
                     b.Navigation("Tecnico");
                 });
 
+            modelBuilder.Entity("AgroCita.Domain.Entities.VisitEvidence", b =>
+                {
+                    b.HasOne("AgroCita.Domain.Entities.Crop", "Cultivo")
+                        .WithMany()
+                        .HasForeignKey("CultivoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AgroCita.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("EmpresaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgroCita.Domain.Entities.User", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AgroCita.Domain.Entities.Visit", "Visita")
+                        .WithMany("Evidencias")
+                        .HasForeignKey("VisitaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cultivo");
+
+                    b.Navigation("Usuario");
+
+                    b.Navigation("Visita");
+                });
+
             modelBuilder.Entity("AgroCita.Domain.Entities.VisitReschedule", b =>
                 {
                     b.HasOne("AgroCita.Domain.Entities.Company", null)
@@ -1339,9 +1569,13 @@ namespace AgroCita.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("AgroCita.Domain.Entities.Visit", b =>
                 {
+                    b.Navigation("Evidencias");
+
                     b.Navigation("Informe");
 
                     b.Navigation("Inspecciones");
+
+                    b.Navigation("Recetas");
 
                     b.Navigation("Reprogramaciones");
                 });

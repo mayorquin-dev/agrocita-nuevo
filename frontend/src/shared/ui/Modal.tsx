@@ -38,7 +38,7 @@ export function Modal({ abierto, alCerrar, titulo, descripcion, ancho = 'md', ch
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
       <motion.div
-        className="absolute inset-0 bg-forest-deep/50 backdrop-blur-md"
+        className="absolute inset-0 bg-[#08170f]/55 backdrop-blur-md"
         onClick={alCerrar}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

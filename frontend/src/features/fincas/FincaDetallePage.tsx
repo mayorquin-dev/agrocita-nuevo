@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { ChevronDown, ClipboardPlus, Pencil, Plus, Wheat } from 'lucide-react'
+import { ChevronDown, ClipboardPlus, Pencil, Plus, Route, Wheat } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { HistorialCultivo } from '@/features/calidad/HistorialCultivo'
@@ -123,6 +123,16 @@ export function FincaDetallePage() {
                             </span>
                             <ChevronDown className={clsx('size-5 shrink-0 text-ink-faint transition', expandido && 'rotate-180')} aria-hidden />
                           </button>
+                          {(esProductor || tieneRol('AdminEmpresa')) && (
+                            <Link
+                              to={`/trazabilidad/${cultivo.id}`}
+                              aria-label={`Trazabilidad de ${cultivo.nombre}`}
+                              title="Trazabilidad del lote"
+                              className="grid size-9 shrink-0 place-items-center rounded-lg text-ink-soft transition hover:bg-paper-deep hover:text-ink"
+                            >
+                              <Route className="size-4" />
+                            </Link>
+                          )}
                           {esProductor && (
                             <button
                               type="button"

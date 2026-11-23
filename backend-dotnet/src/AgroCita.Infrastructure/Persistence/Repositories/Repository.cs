@@ -66,6 +66,8 @@ public class Repository<T>(AgroCitaDbContext context) : IRepository<T> where T :
 
     public void Add(T entidad) => context.Set<T>().Add(entidad);
 
+    public void Remove(T entidad) => context.Set<T>().Remove(entidad);
+
     private IQueryable<T> Consulta(string[]? incluir, bool sinFiltroEmpresa)
     {
         IQueryable<T> consulta = context.Set<T>();

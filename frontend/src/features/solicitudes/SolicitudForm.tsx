@@ -116,7 +116,7 @@ export function SolicitudForm({ fincaInicial, alCerrar }: SolicitudFormProps) {
                       'inline-flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium transition',
                       activo
                         ? 'border-forest bg-forest text-paper'
-                        : 'border-line bg-white/70 text-ink-soft hover:border-ink-faint',
+                        : 'border-line bg-card/70 text-ink-soft hover:border-ink-faint',
                     )}
                   >
                     <span

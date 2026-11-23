@@ -9,6 +9,9 @@
 *.user
 *.suo
 
+# Fotos de evidencias y firmas subidas en desarrollo
+**/almacenamiento/
+
 # Resultados de pruebas
 **/TestResults/
 

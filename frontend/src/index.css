@@ -136,6 +136,123 @@
   }
 }
 
+/*
+ * Tema oscuro. La paleta se invierte por tokens: las superficies claras pasan a
+ * verde casi negro y las tintas a claras. Las superficies que ya son oscuras por
+ * diseño (menú lateral, panel del login, carga) llevan .superficie-oscura, que
+ * restaura la paleta clara dentro de ellas para que conserven su aspecto.
+ */
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --color-paper: #0c1611;
+      --color-paper-deep: #121f18;
+      --color-card: #15231b;
+      --color-line: #2a3b31;
+      --color-line-soft: #1d2c23;
+      --color-ink: #e8efe9;
+      --color-ink-soft: #b4c1b8;
+      --color-ink-faint: #8d9a91;
+      --color-forest: #bfe3c9;
+      --color-forest-deep: #e2f2e6;
+      --color-forest-light: #9fd6b0;
+      --color-moss: #6fb583;
+      --color-moss-soft: #1a3324;
+      --color-ochre-deep: #d6f28a;
+      --color-ochre-soft: #243110;
+      --color-amber-deep: #f2c46a;
+      --color-amber-soft: #36270c;
+      --color-clay: #ec7b64;
+      --color-clay-soft: #3a1a14;
+      --color-lake: #74c6df;
+      --color-lake-soft: #10303a;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --color-paper: #0c1611;
+    --color-paper-deep: #121f18;
+    --color-card: #15231b;
+    --color-line: #2a3b31;
+    --color-line-soft: #1d2c23;
+    --color-ink: #e8efe9;
+    --color-ink-soft: #b4c1b8;
+    --color-ink-faint: #8d9a91;
+    --color-forest: #bfe3c9;
+    --color-forest-deep: #e2f2e6;
+    --color-forest-light: #9fd6b0;
+    --color-moss: #6fb583;
+    --color-moss-soft: #1a3324;
+    --color-ochre-deep: #d6f28a;
+    --color-ochre-soft: #243110;
+    --color-amber-deep: #f2c46a;
+    --color-amber-soft: #36270c;
+    --color-clay: #ec7b64;
+    --color-clay-soft: #3a1a14;
+    --color-lake: #74c6df;
+    --color-lake-soft: #10303a;
+  }
+
+  .superficie-oscura {
+    color-scheme: dark;
+    --color-paper: #f5f4ee;
+    --color-paper-deep: #ebeae2;
+    --color-card: #ffffff;
+    --color-line: #dfded4;
+    --color-line-soft: #ecebe4;
+    --color-ink: #0d1b14;
+    --color-ink-soft: #46524b;
+    --color-ink-faint: #67716a;
+    --color-forest: #0f2a1d;
+    --color-forest-deep: #08170f;
+    --color-forest-light: #1f4a35;
+    --color-moss: #4c8a5c;
+    --color-moss-soft: #e3f0e3;
+    --color-ochre-deep: #4a6a0a;
+    --color-ochre-soft: #eef9d2;
+  }
+
+  /* Modo campo: en el celular del técnico y del productor, más contraste para leer al sol. */
+  @media (max-width: 1023px) {
+    :root:not([data-theme="dark"]) .modo-campo {
+      --color-ink-soft: #2f3a33;
+      --color-ink-faint: #4f5a52;
+      --color-line: #c8c7bb;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]):not([data-theme="dark"]) .modo-campo {
+        --color-ink-soft: #b4c1b8;
+        --color-ink-faint: #8d9a91;
+        --color-line: #2a3b31;
+      }
+    }
+  }
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    background-image: none !important;
+  }
+
+  * {
+    box-shadow: none !important;
+    animation: none !important;
+  }
+}
+
 @layer base {
   html {
     font-family: var(--font-sans);
@@ -157,6 +274,26 @@
       100% 100%,
       22px 22px;
     background-attachment: fixed;
+  }
+
+  :root[data-theme="dark"] body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 100% 0%, rgb(197 240 90 / 0.06), transparent 70%),
+      radial-gradient(rgb(232 239 233 / 0.05) 1px, transparent 1px);
+    background-size:
+      100% 100%,
+      22px 22px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) body {
+      background-image:
+        radial-gradient(ellipse 60% 40% at 100% 0%, rgb(197 240 90 / 0.06), transparent 70%),
+        radial-gradient(rgb(232 239 233 / 0.05) 1px, transparent 1px);
+      background-size:
+        100% 100%,
+        22px 22px;
+    }
   }
 
   h1,

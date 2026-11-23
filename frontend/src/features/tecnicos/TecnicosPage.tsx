@@ -142,6 +142,11 @@ export function TecnicosPage() {
               icono={<Sprout className="size-5" />}
               titulo="Tu organización aún no tiene técnicos"
               descripcion="Crea la primera cuenta para poder asignar visitas."
+              accion={
+                <Button variante="acento" icono={<Plus className="size-4" />} onClick={() => setCreando(true)}>
+                  Agregar técnico
+                </Button>
+              }
             />
           ) : (
             <ul className="stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">

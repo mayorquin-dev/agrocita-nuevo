@@ -13,7 +13,7 @@ interface BaseProps {
 
 const control =
   'w-full rounded-xl border bg-card px-3.5 text-[15px] text-ink shadow-[0_1px_2px_rgb(13_27_20/0.04)] placeholder:text-ink-faint/70 transition duration-200 ' +
-  'hover:border-ink-faint/60 focus:border-forest focus:bg-white focus:outline-none focus:ring-4 focus:ring-ochre/35 ' +
+  'hover:border-ink-faint/60 focus:border-forest focus:bg-card focus:outline-none focus:ring-4 focus:ring-ochre/35 ' +
   'disabled:cursor-not-allowed disabled:bg-paper-deep disabled:text-ink-faint'
 
 function Envoltura({

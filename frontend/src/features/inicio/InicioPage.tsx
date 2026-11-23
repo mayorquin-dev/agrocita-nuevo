@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { ArrowRight, CalendarCheck, ClipboardPlus } from 'lucide-react'
+import { ArrowRight, CalendarCheck, ClipboardPlus, Repeat } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -10,6 +10,7 @@ import { productoresApi, productoresKeys } from '@/features/productores/api'
 import { solicitudesApi, solicitudesKeys } from '@/features/solicitudes/api'
 import { tecnicosApi, tecnicosKeys } from '@/features/tecnicos/api'
 import { visitasApi, visitasKeys } from '@/features/visitas/api'
+import { RecetasLista } from '@/features/visitas/Recetas'
 import { VisitaTicket } from '@/features/visitas/VisitaTicket'
 import { useUsuario } from '@/shared/auth/AuthContext'
 import { claveDia, formato, hoyISO, sumarDias } from '@/shared/lib/format'
@@ -86,7 +87,7 @@ function Indicador({ etiqueta, valor, a, nota, destacado = false }: IndicadorPro
       className={clsx(
         'group relative flex flex-col justify-between overflow-hidden rounded-[22px] border p-5 transition duration-300 ease-[var(--ease-salida)] hover:-translate-y-1 hover:shadow-lift md:p-6',
         destacado
-          ? 'col-span-2 border-forest-deep bg-forest-deep text-paper shadow-lift sm:col-span-1 sm:row-span-1'
+          ? 'superficie-oscura col-span-2 border-forest-deep bg-forest-deep text-paper shadow-lift sm:col-span-1 sm:row-span-1'
           : 'border-line/80 bg-card shadow-sheet hover:border-forest/25',
       )}
     >
@@ -202,8 +203,63 @@ function InicioProductor() {
             </QueryView>
           </Card>
         </div>
+
+        <Card className="overflow-hidden">
+          <CardHeader
+            titulo="Recetas por aplicar"
+            descripcion="Confirma cada producto cuando lo apliques."
+            accion={
+              <Link to="/recetas" className="text-[13px] font-semibold text-forest hover:underline">
+                Ver todas
+              </Link>
+            }
+          />
+          <RecetasLista filtro="pendientes" />
+        </Card>
       </div>
     </>
+  )
+}
+
+function Seguimientos() {
+  const esAdmin = useUsuario().rol === 'AdminEmpresa'
+  const seguimientos = useQuery({ queryKey: visitasKeys.seguimientos, queryFn: () => visitasApi.seguimientos(14) })
+
+  return (
+    <Card>
+      <CardHeader titulo="Visitas de seguimiento" descripcion="Cultivos que el técnico pidió volver a revisar en los próximos 14 días." />
+      <QueryView query={seguimientos} filas={2}>
+        {(lista) =>
+          lista.length === 0 ? (
+            <div className="p-5 md:p-6">
+              <EmptyState compacto icono={<Repeat className="size-5" />} titulo="Sin seguimientos próximos" />
+            </div>
+          ) : (
+            <ul>
+              {lista.map((s) => (
+                <li key={s.visitaId} className="border-b border-line-soft last:border-0">
+                  <Link to={esAdmin ? `/solicitudes/${s.solicitudId}` : `/visitas/${s.visitaId}`} className="group flex items-center gap-4 px-5 py-3.5 transition hover:bg-ochre-soft/25 md:px-6">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold">
+                        {s.finca.nombre} <span className="font-normal text-ink-soft">· {s.productor.nombre}</span>
+                      </p>
+                      <p className="truncate text-[13px] text-ink-soft">
+                        Visita V-{String(s.visitaId).padStart(4, '0')} de {formato.fecha(s.fechaVisita)} · {s.tecnico.nombre}
+                      </p>
+                    </div>
+                    <span className={clsx('font-mono text-xs whitespace-nowrap', s.vencido ? 'font-semibold text-clay' : 'text-ink-soft')}>
+                      {s.vencido ? 'Vencido · ' : ''}
+                      {formato.fecha(s.fechaSeguimiento)}
+                    </span>
+                    <ArrowRight className="size-4 text-ink-faint transition group-hover:translate-x-0.5 group-hover:text-forest" aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </QueryView>
+    </Card>
   )
 }
 
@@ -282,11 +338,38 @@ function InicioAdmin() {
                   semana && semana.length > 0 ? (
                     semana.slice(0, 5).map((visita) => <VisitaTicket key={visita.id} visita={visita} />)
                   ) : (
-                    <EmptyState compacto icono={<CalendarCheck className="size-5" />} titulo="Sin visitas esta semana" />
+                    <EmptyState
+                      compacto
+                      icono={<CalendarCheck className="size-5" />}
+                      titulo="Sin visitas esta semana"
+                      accion={
+                        <Link to="/solicitudes">
+                          <Button tamano="sm" variante="secundario">
+                            Programar desde solicitudes
+                          </Button>
+                        </Link>
+                      }
+                    />
                   )
                 }
               </QueryView>
             </div>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Seguimientos />
+          <Card className="overflow-hidden">
+            <CardHeader
+              titulo="Recetas vencidas"
+              descripcion="Productos que debieron aplicarse y nadie confirmó."
+              accion={
+                <Link to="/recetas" className="text-[13px] font-semibold text-forest hover:underline">
+                  Ver plan de manejo
+                </Link>
+              }
+            />
+            <RecetasLista filtro="vencidas" />
           </Card>
         </div>
       </div>
@@ -343,6 +426,8 @@ function InicioTecnico() {
             </div>
           </Card>
         </div>
+
+        <Seguimientos />
       </div>
     </>
   )

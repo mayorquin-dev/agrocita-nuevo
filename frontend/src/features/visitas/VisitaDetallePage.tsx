@@ -27,9 +27,12 @@ import { EmptyState, QueryView } from '@/shared/ui/feedback'
 import { Card, CardHeader, Dato, PageHeader } from '@/shared/ui/layout'
 import { visitasApi, visitasKeys } from './api'
 import type { EstadoVisita, VisitaDetalle } from './api'
+import { CerrarVisitaForm, FirmaCard } from './CerrarVisita'
+import { EvidenciasCard } from './Evidencias'
+import { RecetasCard } from './Recetas'
 import { CancelarVisitaForm, ReprogramarForm } from './VisitaForms'
 
-type ModalActivo = 'cancelar' | 'reprogramar' | 'inspeccion' | 'recomendacion' | 'aplicacion' | 'informe' | null
+type ModalActivo = 'cancelar' | 'reprogramar' | 'inspeccion' | 'recomendacion' | 'aplicacion' | 'informe' | 'cerrar' | null
 
 const ETAPAS: { estado: EstadoVisita; etiqueta: string }[] = [
   { estado: 'Pendiente', etiqueta: 'Pendiente' },
@@ -154,8 +157,13 @@ function Contenido({ visita }: { visita: VisitaDetalle }) {
               </Button>
             )}
             {esTecnico && visita.estado === 'EnProceso' && (
-              <Button icono={<CircleCheckBig className="size-4" />} cargando={avanzar.isPending} onClick={() => avanzar.mutate('Completada')}>
-                Completar visita
+              <Button
+                icono={<CircleCheckBig className="size-4" />}
+                disabled={!visita.tieneInforme}
+                title={visita.tieneInforme ? undefined : 'Elabora el informe antes de cerrar la visita'}
+                onClick={() => setModal('cerrar')}
+              >
+                Cerrar con firma
               </Button>
             )}
             {(esAdmin || esTecnico) && !cerrada && (
@@ -282,6 +290,19 @@ function Contenido({ visita }: { visita: VisitaDetalle }) {
           )}
         </Card>
 
+        {esTecnico && visita.estado === 'EnProceso' && !visita.tieneInforme && (
+          <p className="-mt-2 text-[13px] text-ink-soft">Para cerrar la visita con la firma del productor, primero elabora el informe.</p>
+        )}
+
+        {visita.estado !== 'Pendiente' && visita.estado !== 'Confirmada' && (
+          <>
+            <EvidenciasCard visita={visita} puedeRegistrar={esTecnico && visita.estado === 'EnProceso'} />
+            <RecetasCard visita={visita} />
+          </>
+        )}
+
+        <FirmaCard visita={visita} />
+
         {esAdmin && <Reprogramaciones visitaId={visita.id} />}
       </div>
 
@@ -291,6 +312,7 @@ function Contenido({ visita }: { visita: VisitaDetalle }) {
       {modal === 'recomendacion' && <RecomendacionForm visita={visita} alCerrar={() => setModal(null)} />}
       {modal === 'aplicacion' && <AplicacionForm visita={visita} alCerrar={() => setModal(null)} />}
       {modal === 'informe' && <InformeForm visitaId={visita.id} alCerrar={() => setModal(null)} />}
+      {modal === 'cerrar' && <CerrarVisitaForm visita={visita} alCerrar={() => setModal(null)} />}
     </>
   )
 }

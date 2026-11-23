@@ -12,7 +12,10 @@ import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 import { router } from '@/app/router'
 import { AuthProvider } from '@/shared/auth/AuthContext'
+import { aplicarTema } from '@/shared/ui/Tema'
 import { ToastProvider } from '@/shared/ui/Toast'
+
+aplicarTema()
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -17,7 +17,7 @@ const variantes: Record<Variante, string> = {
   primario:
     'bg-forest text-paper shadow-[inset_0_1px_0_rgb(255_255_255/0.12),0_1px_2px_rgb(8_23_15/0.3),0_8px_20px_-10px_rgb(8_23_15/0.6)] hover:bg-forest-light',
   acento:
-    'bg-ochre text-forest-deep shadow-[inset_0_1px_0_rgb(255_255_255/0.5),0_1px_2px_rgb(8_23_15/0.15)] hover:shadow-glow',
+    'superficie-oscura bg-ochre text-forest-deep shadow-[inset_0_1px_0_rgb(255_255_255/0.5),0_1px_2px_rgb(8_23_15/0.15)] hover:shadow-glow',
   secundario:
     'bg-card text-ink border border-line shadow-[0_1px_2px_rgb(13_27_20/0.05)] hover:border-ink-faint/60 hover:bg-paper',
   fantasma: 'text-ink-soft hover:bg-paper-deep hover:text-ink',

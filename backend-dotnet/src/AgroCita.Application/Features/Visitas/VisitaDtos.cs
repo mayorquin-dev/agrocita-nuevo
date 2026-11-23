@@ -25,6 +25,15 @@ public record VisitaDto
     public string? MotivoCancelacion { get; init; }
 }
 
+public record CerrarVisitaDto(
+    string? FirmaPng,
+    string? FirmadoPor,
+    double? Latitud,
+    double? Longitud,
+    int? DiasSeguimiento);
+
+public record FirmaVisitaDto(string FirmadoPor, DateTime Fecha, double? Latitud, double? Longitud);
+
 public record UbicacionDto(string Departamento, string Municipio, string Direccion);
 
 public record VisitaDetalleDto : VisitaDto
@@ -33,7 +42,20 @@ public record VisitaDetalleDto : VisitaDto
     public IReadOnlyList<ReferenciaDto> Cultivos { get; init; } = [];
     public string Motivo { get; init; } = string.Empty;
     public bool TieneInforme { get; init; }
+    public FirmaVisitaDto? Firma { get; init; }
+    public DateOnly? FechaSeguimiento { get; init; }
 }
+
+public record SeguimientoVisitaDto(
+    int VisitaId,
+    int SolicitudId,
+    ReferenciaDto Finca,
+    ReferenciaDto Productor,
+    ReferenciaDto Tecnico,
+    DateTime FechaVisita,
+    DateOnly FechaSeguimiento,
+    bool Vencido,
+    bool Reprogramado);
 
 public record VisitaAgendaDto(
     int Id,
@@ -88,6 +110,14 @@ public static class VisitaMapeos
                 .Where(c => c.Cultivo is not null)
                 .Select(c => c.Cultivo!.AReferencia())
                 .ToList(),
+            Firma = visita.TieneFirma
+                ? new FirmaVisitaDto(
+                    visita.FirmadoPor ?? string.Empty,
+                    visita.FechaFirma ?? visita.FechaProgramada,
+                    visita.FirmaLatitud,
+                    visita.FirmaLongitud)
+                : null,
+            FechaSeguimiento = visita.FechaSeguimiento,
             Motivo = solicitud.Motivo,
             TieneInforme = visita.Informe is not null
         };
@@ -139,6 +169,35 @@ public class CambiarEstadoVisitaValidator : AbstractValidator<CambiarEstadoVisit
 
         RuleFor(x => x.Motivo)
             .MaximumLength(250).WithMessage("El motivo no puede superar los 250 caracteres.");
+    }
+}
+
+public class CerrarVisitaValidator : AbstractValidator<CerrarVisitaDto>
+{
+    public const int FirmaMaximaBytes = 1024 * 1024;
+
+    public CerrarVisitaValidator()
+    {
+        RuleFor(x => x.FirmaPng)
+            .NotEmpty().WithMessage("La firma del productor es obligatoria.")
+            .Must(f => f is null || f.Length <= FirmaMaximaBytes * 4 / 3 + 64)
+            .WithMessage("La firma es demasiado grande.");
+
+        RuleFor(x => x.FirmadoPor)
+            .NotEmpty().WithMessage("El nombre de quien firma es obligatorio.")
+            .MaximumLength(150).WithMessage("El nombre no puede superar los 150 caracteres.");
+
+        RuleFor(x => x.Latitud)
+            .InclusiveBetween(-90, 90).WithMessage("La latitud no es válida.")
+            .When(x => x.Latitud is not null);
+
+        RuleFor(x => x.Longitud)
+            .InclusiveBetween(-180, 180).WithMessage("La longitud no es válida.")
+            .When(x => x.Longitud is not null);
+
+        RuleFor(x => x.DiasSeguimiento)
+            .InclusiveBetween(1, 365).WithMessage("El seguimiento debe estar entre 1 y 365 días.")
+            .When(x => x.DiasSeguimiento is not null);
     }
 }
 

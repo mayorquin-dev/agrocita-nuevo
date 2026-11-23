@@ -30,6 +30,27 @@ public interface IRepository<T> where T : class
         CancellationToken ct = default);
 
     void Add(T entidad);
+
+    void Remove(T entidad);
+}
+
+public interface IFileStorage
+{
+    Task<string> GuardarAsync(Stream contenido, string carpeta, string extension, CancellationToken ct);
+
+    Stream? Abrir(string clave);
+
+    void Eliminar(string clave);
+}
+
+public record HojaExcel(
+    string Nombre,
+    IReadOnlyList<string> Encabezados,
+    IReadOnlyList<object?[]> Filas);
+
+public interface IExcelExporter
+{
+    byte[] Generar(IReadOnlyList<HojaExcel> hojas);
 }
 
 public interface IUnitOfWork

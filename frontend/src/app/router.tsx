@@ -44,6 +44,7 @@ export const router = createBrowserRouter([
                 { path: '/', lazy: () => import('@/features/inicio/InicioPage').then((m) => ({ Component: m.InicioPage })) },
                 { path: '/fincas/:id', lazy: () => import('@/features/fincas/FincaDetallePage').then((m) => ({ Component: m.FincaDetallePage })) },
                 { path: '/visitas/:id', lazy: () => import('@/features/visitas/VisitaDetallePage').then((m) => ({ Component: m.VisitaDetallePage })) },
+                { path: '/recetas', lazy: () => import('@/features/visitas/Recetas').then((m) => ({ Component: m.RecetasPage })) },
               ]),
               soloPara(['Productor'], [
                 { path: '/fincas', lazy: () => import('@/features/fincas/FincasPage').then((m) => ({ Component: m.FincasPage })) },
@@ -56,9 +57,15 @@ export const router = createBrowserRouter([
                   path: '/solicitudes/:id',
                   lazy: () => import('@/features/solicitudes/SolicitudDetallePage').then((m) => ({ Component: m.SolicitudDetallePage })),
                 },
+                { path: '/trazabilidad', lazy: () => import('@/features/trazabilidad/TrazabilidadPage').then((m) => ({ Component: m.TrazabilidadPage })) },
+                {
+                  path: '/trazabilidad/:cultivoId',
+                  lazy: () => import('@/features/trazabilidad/TrazabilidadPage').then((m) => ({ Component: m.TrazabilidadPage })),
+                },
               ]),
               soloPara(['AdminEmpresa'], [
                 { path: '/agenda', lazy: () => import('@/features/visitas/AgendaPage').then((m) => ({ Component: m.AgendaPage })) },
+                { path: '/indicadores', lazy: () => import('@/features/indicadores/IndicadoresPage').then((m) => ({ Component: m.IndicadoresPage })) },
                 { path: '/productores', lazy: () => import('@/features/productores/ProductoresPage').then((m) => ({ Component: m.ProductoresPage })) },
                 {
                   path: '/productores/:id',

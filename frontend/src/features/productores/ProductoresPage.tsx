@@ -1,8 +1,9 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { Search, Users } from 'lucide-react'
+import { Search, Share2, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { formato } from '@/shared/lib/format'
+import { Button } from '@/shared/ui/Button'
 import { EmptyState, QueryView } from '@/shared/ui/feedback'
 import { Card, PageHeader } from '@/shared/ui/layout'
 import { DataTable, Pagination } from '@/shared/ui/Table'
@@ -50,7 +51,7 @@ export function ProductoresPage() {
               value={texto}
               onChange={(evento) => setTexto(evento.target.value)}
               placeholder="Buscar por nombre o DNI"
-              className="h-11 w-full rounded-[10px] border border-line bg-white/70 pr-3.5 pl-10 text-[15px] transition placeholder:text-ink-faint/70 hover:border-ink-faint focus:border-forest focus:bg-white focus:ring-4 focus:ring-moss-soft focus:outline-none"
+              className="h-11 w-full rounded-[10px] border border-line bg-card/70 pr-3.5 pl-10 text-[15px] transition placeholder:text-ink-faint/70 hover:border-ink-faint focus:border-forest focus:bg-card focus:ring-4 focus:ring-moss-soft focus:outline-none"
             />
           </label>
         </div>
@@ -63,7 +64,16 @@ export function ProductoresPage() {
                   compacto
                   icono={<Users className="size-5" />}
                   titulo={buscar ? 'Nadie coincide con la búsqueda' : 'Todavía no hay productores'}
-                  descripcion={buscar ? undefined : 'Comparte el código de invitación desde Organización para que se registren.'}
+                  descripcion={buscar ? 'Prueba con otro nombre o con el DNI.' : 'Comparte el código de invitación de tu organización para que se registren.'}
+                  accion={
+                    !buscar && (
+                      <Link to="/organizacion">
+                        <Button variante="acento" icono={<Share2 className="size-4" />}>
+                          Ver código de invitación
+                        </Button>
+                      </Link>
+                    )
+                  }
                 />
               </div>
             ) : (

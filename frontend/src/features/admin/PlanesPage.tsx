@@ -72,7 +72,7 @@ function PlanForm({ plan, alCerrar }: { plan?: Plan; alCerrar: () => void }) {
             {...register('maxProductores', comoNumero)}
           />
         </div>
-        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-white/60 px-3.5 py-3 text-sm font-medium">
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-card/60 px-3.5 py-3 text-sm font-medium">
           <input type="checkbox" className="size-4 accent-forest" {...register('activo')} />
           Plan disponible para nuevas organizaciones
         </label>

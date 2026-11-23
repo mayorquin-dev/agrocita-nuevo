@@ -56,7 +56,7 @@ export function AuthShell({ children, frase, nota }: AuthShellProps) {
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
       <aside
         onMouseMove={alMover}
-        className="relative hidden overflow-hidden bg-forest-deep text-paper lg:flex lg:flex-col lg:justify-between lg:gap-6 lg:p-12 xl:p-14"
+        className="superficie-oscura relative hidden overflow-hidden bg-forest-deep text-paper lg:flex lg:flex-col lg:justify-between lg:gap-6 lg:p-12 xl:p-14"
       >
         <div className="reticula pointer-events-none absolute inset-0" aria-hidden />
         <div className="grano pointer-events-none absolute inset-0 opacity-70" aria-hidden />

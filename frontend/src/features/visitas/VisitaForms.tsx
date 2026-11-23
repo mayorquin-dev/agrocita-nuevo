@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useZodForm } from '@/shared/forms/zod'
 import { useFormMutation } from '@/shared/forms/mutations'
 import { aISOLocal, formato } from '@/shared/lib/format'
@@ -48,8 +49,16 @@ export function CancelarVisitaForm({ visita, alCerrar }: Props) {
   )
 }
 
-export function ReprogramarForm({ visita, alCerrar }: Props) {
-  const form = useZodForm(reprogramarSchema, { nuevaFecha: aISOLocal(visita.fechaProgramada), motivo: '' })
+export function ReprogramarForm({
+  visita,
+  alCerrar,
+  nuevaFecha,
+}: {
+  visita: Pick<Visita, 'id' | 'fechaProgramada'>
+  alCerrar: () => void
+  nuevaFecha?: string
+}) {
+  const form = useZodForm(reprogramarSchema, { nuevaFecha: nuevaFecha ?? aISOLocal(visita.fechaProgramada), motivo: '' })
 
   const { enviar, errorGeneral, cargando } = useFormMutation(form, {
     mutationFn: (valores) =>
@@ -64,8 +73,13 @@ export function ReprogramarForm({ visita, alCerrar }: Props) {
 
   const {
     register,
+    trigger,
     formState: { errors, isValid },
   } = form
+
+  useEffect(() => {
+    if (nuevaFecha) void trigger('nuevaFecha')
+  }, [nuevaFecha, trigger])
 
   return (
     <Modal

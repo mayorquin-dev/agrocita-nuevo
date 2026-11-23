@@ -28,7 +28,7 @@ function CodigoInvitacion({ codigo }: { codigo: string }) {
   }
 
   return (
-    <section className="relative overflow-hidden rounded-2xl bg-forest px-6 py-7 text-paper shadow-lift md:px-8">
+    <section className="superficie-oscura relative overflow-hidden rounded-2xl bg-forest px-6 py-7 text-paper shadow-lift md:px-8">
       <Contours className="pointer-events-none absolute -top-40 -right-32 size-[460px] text-moss/30" />
       <div className="relative">
         <p className="eyebrow !text-ochre">Código de invitación</p>

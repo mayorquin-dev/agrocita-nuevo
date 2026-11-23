@@ -56,6 +56,8 @@ const estados: Record<string, { etiqueta: string; tono: Tono }> = {
   Activa: { etiqueta: 'Activa', tono: 'moss' },
   Vencida: { etiqueta: 'Vencida', tono: 'amber' },
   Suspendida: { etiqueta: 'Suspendida', tono: 'clay' },
+  Aplicada: { etiqueta: 'Aplicada', tono: 'moss' },
+  NoAplicada: { etiqueta: 'No aplicada', tono: 'clay' },
 }
 
 export function etiquetaEstado(estado: string): string {

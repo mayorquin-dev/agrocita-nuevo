@@ -20,6 +20,18 @@ public class Visit : ITenantEntity
 
     public DateTime FechaCreacion { get; set; }
 
+    public string? FirmaArchivo { get; set; }
+
+    public string? FirmadoPor { get; set; }
+
+    public DateTime? FechaFirma { get; set; }
+
+    public double? FirmaLatitud { get; set; }
+
+    public double? FirmaLongitud { get; set; }
+
+    public DateOnly? FechaSeguimiento { get; set; }
+
     public AssistanceRequest? Solicitud { get; set; }
 
     public Technician? Tecnico { get; set; }
@@ -31,6 +43,14 @@ public class Visit : ITenantEntity
 
     public ICollection<Inspection> Inspecciones { get; set; }
         = new List<Inspection>();
+
+    public ICollection<VisitEvidence> Evidencias { get; set; }
+        = new List<VisitEvidence>();
+
+    public ICollection<Prescription> Recetas { get; set; }
+        = new List<Prescription>();
+
+    public bool TieneFirma => FirmaArchivo is not null;
 
     public bool EstaCerrada =>
         Estado is VisitStatus.Completada or VisitStatus.Cancelada;

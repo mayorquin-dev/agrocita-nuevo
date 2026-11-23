@@ -42,6 +42,8 @@ public class AgroCitaDbContext : DbContext
     public DbSet<FertilizationRecommendation> FertilizationRecommendations => Set<FertilizationRecommendation>();
     public DbSet<FertilizerApplication> FertilizerApplications => Set<FertilizerApplication>();
     public DbSet<Report> Reports => Set<Report>();
+    public DbSet<VisitEvidence> VisitEvidences => Set<VisitEvidence>();
+    public DbSet<Prescription> Prescriptions => Set<Prescription>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -293,6 +295,42 @@ public class AgroCitaDbContext : DbContext
             entity.Property(i => i.Diagnostico).IsRequired();
             entity.Property(i => i.Recomendaciones).IsRequired();
             entity.HasOne(i => i.Visita).WithOne(v => v.Informe).HasForeignKey<Report>(i => i.VisitaId);
+        });
+
+        modelBuilder.Entity<Visit>(entity =>
+        {
+            entity.Property(v => v.FirmaArchivo).HasMaxLength(200);
+            entity.Property(v => v.FirmadoPor).HasMaxLength(150);
+        });
+
+        modelBuilder.Entity<VisitEvidence>(entity =>
+        {
+            entity.ToTable("EvidenciaVisita");
+            entity.Property(e => e.Descripcion).HasMaxLength(250);
+            entity.Property(e => e.Archivo).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.ContentType).IsRequired().HasMaxLength(50);
+            entity.HasOne(e => e.Visita).WithMany(v => v.Evidencias).HasForeignKey(e => e.VisitaId);
+            entity.HasOne(e => e.Cultivo).WithMany().HasForeignKey(e => e.CultivoId);
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UsuarioId);
+            entity.HasIndex(e => new { e.VisitaId, e.FechaCaptura });
+        });
+
+        modelBuilder.Entity<Prescription>(entity =>
+        {
+            entity.ToTable("RecetaManejo");
+            entity.Property(r => r.Producto).IsRequired().HasMaxLength(120);
+            entity.Property(r => r.TipoProducto).HasConversion<string>().HasMaxLength(20);
+            entity.Property(r => r.Dosis).HasPrecision(10, 3);
+            entity.Property(r => r.Unidad).IsRequired().HasMaxLength(30);
+            entity.Property(r => r.MetodoAplicacion).HasMaxLength(100);
+            entity.Property(r => r.Indicaciones).HasMaxLength(500);
+            entity.Property(r => r.Estado).HasConversion<string>().HasMaxLength(20);
+            entity.Property(r => r.ComentarioSeguimiento).HasMaxLength(500);
+            entity.HasOne(r => r.Visita).WithMany(v => v.Recetas).HasForeignKey(r => r.VisitaId);
+            entity.HasOne(r => r.Cultivo).WithMany().HasForeignKey(r => r.CultivoId);
+            entity.HasOne(r => r.UsuarioSeguimiento).WithMany().HasForeignKey(r => r.UsuarioSeguimientoId);
+            entity.HasIndex(r => new { r.EmpresaId, r.Estado, r.FechaAplicacion });
+            entity.HasIndex(r => new { r.CultivoId, r.FechaAplicacion });
         });
 
         var metodoFiltro = typeof(AgroCitaDbContext).GetMethod(

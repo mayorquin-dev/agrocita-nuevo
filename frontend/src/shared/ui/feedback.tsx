@@ -31,7 +31,7 @@ export function Cargando({ filas = 4 }: { filas?: number }) {
 
 export function PantallaCargando() {
   return (
-    <div className="grid min-h-dvh place-items-center bg-forest-deep">
+    <div className="superficie-oscura grid min-h-dvh place-items-center bg-forest-deep">
       <motion.div
         className="flex flex-col items-center gap-5"
         initial={{ opacity: 0, scale: 0.96 }}
@@ -95,7 +95,7 @@ export function EmptyState({ icono, titulo, descripcion, accion, compacto = fals
         )}
       />
       <motion.div
-        className="relative grid size-12 place-items-center rounded-2xl bg-forest text-ochre shadow-[0_10px_24px_-10px_rgb(8_23_15/0.6)]"
+        className="superficie-oscura relative grid size-12 place-items-center rounded-2xl bg-forest text-ochre shadow-[0_10px_24px_-10px_rgb(8_23_15/0.6)]"
         animate={{ y: [0, -4, 0] }}
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
       >

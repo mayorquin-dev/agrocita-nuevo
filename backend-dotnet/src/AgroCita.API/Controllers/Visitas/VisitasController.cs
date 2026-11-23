@@ -24,6 +24,27 @@ public class VisitasController(
         return Created($"/api/visitas/{visita.Id}", visita);
     }
 
+    [HttpPost("{id:int}/cerrar")]
+    [Authorize(Roles = Permisos.Tecnico)]
+    public async Task<ActionResult<VisitaDetalleDto>> Cerrar(
+        int id, [FromBody] CerrarVisitaDto dto, CancellationToken ct) =>
+        Ok(await visitas.CerrarAsync(id, dto, ct));
+
+    [HttpGet("{id:int}/firma")]
+    [Authorize(Roles = Permisos.Empresa)]
+    public async Task<IActionResult> Firma(int id, CancellationToken ct)
+    {
+        var archivo = await visitas.FirmaAsync(id, ct);
+
+        return File(archivo.Contenido, archivo.ContentType, archivo.NombreDescarga);
+    }
+
+    [HttpGet("seguimientos")]
+    [Authorize(Roles = Permisos.AdminOTecnico)]
+    public async Task<ActionResult<IReadOnlyList<SeguimientoVisitaDto>>> Seguimientos(
+        [FromQuery] int dias = 14, CancellationToken ct = default) =>
+        Ok(await visitas.SeguimientosAsync(dias, ct));
+
     [HttpGet("agenda")]
     [Authorize(Roles = Permisos.Admin)]
     public async Task<ActionResult<IReadOnlyList<VisitaAgendaDto>>> Agenda(

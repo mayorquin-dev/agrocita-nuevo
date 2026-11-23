@@ -48,7 +48,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={api}>
       {children}
       {createPortal(
-        <div className="pointer-events-none fixed inset-x-4 bottom-4 z-[60] flex flex-col items-end gap-2 sm:left-auto sm:w-[380px]" aria-live="polite">
+        <div className="pointer-events-none fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[60] lg:bottom-4 flex flex-col items-end gap-2 sm:left-auto sm:w-[380px]" aria-live="polite">
           <AnimatePresence initial={false}>
           {avisos.map((aviso) => (
             <motion.div
@@ -61,7 +61,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               transition={{ type: 'spring', stiffness: 420, damping: 34 }}
               className={clsx(
                 'pointer-events-auto flex w-full items-start gap-3 rounded-2xl border px-4 py-3.5 text-sm shadow-lift backdrop-blur',
-                aviso.tipo === 'ok' ? 'border-forest-light bg-forest/95 text-paper' : 'border-clay/40 bg-card/95 text-ink',
+                aviso.tipo === 'ok' ? 'superficie-oscura border-forest-light bg-forest/95 text-paper' : 'border-clay/40 bg-card/95 text-ink',
               )}
             >
               {aviso.tipo === 'ok' ? (

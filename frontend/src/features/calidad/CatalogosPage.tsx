@@ -173,7 +173,16 @@ function Parametros({ tipo }: { tipo: TipoCultivo }) {
         {(lista) =>
           lista.length === 0 ? (
             <div className="p-5 md:p-6">
-              <EmptyState compacto titulo="Sin parámetros" descripcion="Sin parámetros no se pueden registrar inspecciones de este cultivo." />
+              <EmptyState
+                compacto
+                titulo="Sin parámetros"
+                descripcion="Sin parámetros no se pueden registrar inspecciones de este cultivo."
+                accion={
+                  <Button tamano="sm" icono={<Plus className="size-3.5" />} onClick={() => setCreando(true)}>
+                    Agregar parámetro
+                  </Button>
+                }
+              />
             </div>
           ) : (
             <ul>
@@ -220,7 +229,16 @@ function SeccionCultivos() {
               />
               {lista.length === 0 ? (
                 <div className="p-5">
-                  <EmptyState compacto titulo="Sin tipos de cultivo" descripcion="Los productores los necesitan para registrar sus cultivos." />
+                  <EmptyState
+                    compacto
+                    titulo="Sin tipos de cultivo"
+                    descripcion="Los productores los necesitan para registrar sus cultivos."
+                    accion={
+                      <Button tamano="sm" icono={<Plus className="size-3.5" />} onClick={() => setCreando(true)}>
+                        Crear el primero
+                      </Button>
+                    }
+                  />
                 </div>
               ) : (
                 <ul className="p-2">
@@ -269,7 +287,16 @@ function SeccionCategorias() {
         {(lista) =>
           lista.length === 0 ? (
             <div className="p-6">
-              <EmptyState compacto titulo="Sin categorías" />
+              <EmptyState
+                compacto
+                titulo="Sin categorías"
+                descripcion="Ejemplo: Primera, Segunda, Rechazo."
+                accion={
+                  <Button tamano="sm" icono={<Plus className="size-3.5" />} onClick={() => setCreando(true)}>
+                    Crear categoría
+                  </Button>
+                }
+              />
             </div>
           ) : (
             <ul className="grid gap-px bg-line-soft sm:grid-cols-2 lg:grid-cols-3">
@@ -308,7 +335,16 @@ function SeccionFertilizantes() {
         {(lista) =>
           lista.length === 0 ? (
             <div className="p-6">
-              <EmptyState compacto titulo="Sin fertilizantes" />
+              <EmptyState
+                compacto
+                titulo="Sin fertilizantes"
+                descripcion="Los técnicos los eligen al recomendar fertilización."
+                accion={
+                  <Button tamano="sm" icono={<Plus className="size-3.5" />} onClick={() => setCreando(true)}>
+                    Agregar fertilizante
+                  </Button>
+                }
+              />
             </div>
           ) : (
             <DataTable<Fertilizante>

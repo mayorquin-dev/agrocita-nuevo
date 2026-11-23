@@ -5,10 +5,14 @@ import {
   ClipboardList,
   FileText,
   FlaskConical,
+  Gauge,
   Home,
   Layers,
   LogOut,
   Menu,
+  Pill,
+  Route,
+  Search,
   Sprout,
   Tractor,
   UserRound,
@@ -17,18 +21,21 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth, useUsuario } from '@/shared/auth/AuthContext'
 import type { Rol } from '@/shared/auth/session'
 import { formato } from '@/shared/lib/format'
+import { BusquedaProvider, useBusqueda } from '@/shared/ui/Busqueda'
 import { Cargando } from '@/shared/ui/feedback'
 import { Contours } from '@/shared/ui/layout'
 import { Marca } from '@/shared/ui/Marca'
+import { BotonTema } from '@/shared/ui/Tema'
 
 interface Enlace {
   a: string
   texto: string
+  corto?: string
   icono: LucideIcon
   exacto?: boolean
 }
@@ -36,15 +43,20 @@ interface Enlace {
 const NAVEGACION: Record<Rol, Enlace[]> = {
   Productor: [
     { a: '/', texto: 'Inicio', icono: Home, exacto: true },
-    { a: '/fincas', texto: 'Mis fincas', icono: Tractor },
+    { a: '/fincas', texto: 'Mis fincas', corto: 'Fincas', icono: Tractor },
     { a: '/solicitudes', texto: 'Solicitudes', icono: ClipboardList },
+    { a: '/recetas', texto: 'Mis recetas', corto: 'Recetas', icono: Pill },
     { a: '/informes', texto: 'Informes', icono: FileText },
+    { a: '/trazabilidad', texto: 'Trazabilidad', icono: Route },
     { a: '/perfil', texto: 'Mi perfil', icono: UserRound },
   ],
   AdminEmpresa: [
     { a: '/', texto: 'Inicio', icono: Home, exacto: true },
     { a: '/solicitudes', texto: 'Solicitudes', icono: ClipboardList },
     { a: '/agenda', texto: 'Agenda', icono: CalendarDays },
+    { a: '/indicadores', texto: 'Indicadores', icono: Gauge },
+    { a: '/recetas', texto: 'Recetas', icono: Pill },
+    { a: '/trazabilidad', texto: 'Trazabilidad', icono: Route },
     { a: '/productores', texto: 'Productores', icono: Users },
     { a: '/tecnicos', texto: 'Técnicos', icono: Sprout },
     { a: '/catalogos', texto: 'Catálogos', icono: FlaskConical },
@@ -52,7 +64,8 @@ const NAVEGACION: Record<Rol, Enlace[]> = {
   ],
   Tecnico: [
     { a: '/', texto: 'Inicio', icono: Home, exacto: true },
-    { a: '/visitas', texto: 'Mis visitas', icono: CalendarDays },
+    { a: '/visitas', texto: 'Mis visitas', corto: 'Visitas', icono: CalendarDays },
+    { a: '/recetas', texto: 'Recetas', icono: Pill },
   ],
   SuperAdmin: [
     { a: '/empresas', texto: 'Organizaciones', icono: Building2 },
@@ -69,17 +82,47 @@ const NOMBRE_ROL: Record<Rol, string> = {
 
 const salida = [0.22, 1, 0.36, 1] as const
 
+function BotonBuscar({ compacto = false }: { compacto?: boolean }) {
+  const { abrir } = useBusqueda()
+
+  if (compacto) {
+    return (
+      <button
+        type="button"
+        onClick={abrir}
+        aria-label="Buscar (Ctrl+K)"
+        className="grid size-10 cursor-pointer place-items-center rounded-xl border border-line bg-card text-ink shadow-sheet"
+      >
+        <Search className="size-5" />
+      </button>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={abrir}
+      className="mx-3 mb-4 flex cursor-pointer items-center gap-2.5 rounded-xl border border-paper/10 bg-paper/[0.05] px-3 py-2.5 text-left text-[13.5px] text-paper/60 transition hover:border-paper/20 hover:text-paper"
+    >
+      <Search className="size-4" aria-hidden />
+      <span className="flex-1">Buscar…</span>
+      <kbd className="rounded-md border border-paper/15 px-1.5 py-0.5 font-mono text-[10.5px] text-paper/50">Ctrl K</kbd>
+    </button>
+  )
+}
+
 function Navegacion({ grupo, alNavegar }: { grupo: string; alNavegar?: () => void }) {
   const usuario = useUsuario()
   const { cerrar } = useAuth()
+  const conBusqueda = usuario.rol !== 'SuperAdmin'
 
   return (
-    <div className="relative flex h-full flex-col overflow-hidden bg-forest-deep text-paper">
+    <div className="superficie-oscura relative flex h-full flex-col overflow-hidden bg-forest-deep text-paper">
       <div className="reticula pointer-events-none absolute inset-0 opacity-60" aria-hidden />
       <div className="pointer-events-none absolute -top-24 -left-24 size-72 rounded-full bg-ochre/10 blur-3xl" aria-hidden />
       <Contours className="pointer-events-none absolute -right-56 -bottom-44 size-[540px] text-ochre/15" />
 
-      <div className="relative px-6 pt-7 pb-7">
+      <div className="relative px-6 pt-7 pb-6">
         <Marca claro compacto />
         <div className="mt-6 flex items-center gap-2 rounded-xl border border-paper/10 bg-paper/[0.04] px-3 py-2.5">
           <span className="relative grid size-2 place-items-center" aria-hidden>
@@ -91,6 +134,12 @@ function Navegacion({ grupo, alNavegar }: { grupo: string; alNavegar?: () => voi
           </p>
         </div>
       </div>
+
+      {conBusqueda && (
+        <div className="relative">
+          <BotonBuscar />
+        </div>
+      )}
 
       <p className="relative px-6 pb-2 font-mono text-[10px] tracking-[0.16em] text-paper/40 uppercase">Menú</p>
       <LayoutGroup id={grupo}>
@@ -151,6 +200,7 @@ function Navegacion({ grupo, alNavegar }: { grupo: string; alNavegar?: () => voi
             <p className="truncate text-sm font-semibold">{usuario.nombre}</p>
             <p className="truncate font-mono text-[10.5px] tracking-wider text-paper/55 uppercase">{NOMBRE_ROL[usuario.rol]}</p>
           </div>
+          <BotonTema className="text-paper/60 hover:bg-paper/10 hover:text-ochre" />
           <button
             type="button"
             onClick={cerrar}
@@ -166,76 +216,142 @@ function Navegacion({ grupo, alNavegar }: { grupo: string; alNavegar?: () => voi
   )
 }
 
+function NavegacionInferior({ alAbrirMenu }: { alAbrirMenu: () => void }) {
+  const usuario = useUsuario()
+  const enlaces = NAVEGACION[usuario.rol].slice(0, 4)
+
+  return (
+    <nav
+      aria-label="Accesos rápidos"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden print:hidden"
+    >
+      <ul className="mx-auto flex max-w-lg">
+        {enlaces.map(({ a, texto, corto, icono: Icono, exacto }) => (
+          <li key={a} className="flex-1">
+            <NavLink
+              to={a}
+              end={exacto}
+              className={({ isActive }) =>
+                clsx(
+                  'flex min-h-16 flex-col items-center justify-center gap-1 text-[11.5px] font-semibold transition-colors',
+                  isActive ? 'text-forest' : 'text-ink-soft hover:text-ink',
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <span className={clsx('grid h-7 w-12 place-items-center rounded-full transition', isActive && 'bg-ochre-soft')}>
+                    <Icono className="size-[22px]" aria-hidden />
+                  </span>
+                  {corto ?? texto}
+                </>
+              )}
+            </NavLink>
+          </li>
+        ))}
+        <li className="flex-1">
+          <button
+            type="button"
+            onClick={alAbrirMenu}
+            className="flex min-h-16 w-full cursor-pointer flex-col items-center justify-center gap-1 text-[11.5px] font-semibold text-ink-soft hover:text-ink"
+          >
+            <span className="grid h-7 w-12 place-items-center">
+              <Menu className="size-[22px]" aria-hidden />
+            </span>
+            Más
+          </button>
+        </li>
+      </ul>
+    </nav>
+  )
+}
+
 export function AppLayout() {
+  const usuario = useUsuario()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const { pathname } = useLocation()
+  const campo = usuario.rol === 'Tecnico' || usuario.rol === 'Productor'
+
+  const atajos = useMemo(
+    () => NAVEGACION[usuario.rol].map(({ a, texto, icono }) => ({ a, texto, icono })),
+    [usuario.rol],
+  )
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
   }, [pathname])
 
   return (
-    <div className="min-h-dvh lg:pl-[272px]">
-      <aside className="fixed inset-y-0 left-0 hidden w-[272px] lg:block">
-        <Navegacion grupo="escritorio" />
-      </aside>
+    <BusquedaProvider atajos={atajos}>
+      <div className={clsx('min-h-dvh lg:pl-[272px] print:pl-0', campo && 'modo-campo pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0')}>
+        <aside className="fixed inset-y-0 left-0 hidden w-[272px] lg:block print:hidden">
+          <Navegacion grupo="escritorio" />
+        </aside>
 
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line/70 bg-paper/80 px-5 py-3 backdrop-blur-xl lg:hidden">
-        <Marca compacto />
-        <button
-          type="button"
-          onClick={() => setMenuAbierto(true)}
-          aria-label="Abrir menú"
-          className="grid size-10 cursor-pointer place-items-center rounded-xl border border-line bg-card text-ink shadow-sheet"
-        >
-          <Menu className="size-5" />
-        </button>
-      </header>
-
-      <AnimatePresence>
-        {menuAbierto && (
-          <div className="fixed inset-0 z-40 lg:hidden">
-            <motion.div
-              className="absolute inset-0 bg-forest-deep/60 backdrop-blur-sm"
-              onClick={() => setMenuAbierto(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              aria-hidden
-            />
-            <motion.div
-              className="absolute inset-y-0 left-0 w-[288px] shadow-lift"
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', stiffness: 360, damping: 36 }}
-            >
-              <Navegacion grupo="movil" alNavegar={() => setMenuAbierto(false)} />
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-line/70 bg-paper/80 px-5 py-3 backdrop-blur-xl lg:hidden print:hidden">
+          <Marca compacto />
+          <div className="flex items-center gap-2">
+            {usuario.rol !== 'SuperAdmin' && <BotonBuscar compacto />}
+            {!campo && (
               <button
                 type="button"
-                onClick={() => setMenuAbierto(false)}
-                aria-label="Cerrar menú"
-                className="absolute top-6 right-4 grid size-9 cursor-pointer place-items-center rounded-lg text-paper/70 hover:bg-paper/10"
+                onClick={() => setMenuAbierto(true)}
+                aria-label="Abrir menú"
+                className="grid size-10 cursor-pointer place-items-center rounded-xl border border-line bg-card text-ink shadow-sheet"
               >
-                <X className="size-5" />
+                <Menu className="size-5" />
               </button>
-            </motion.div>
+            )}
           </div>
-        )}
-      </AnimatePresence>
+        </header>
 
-      <main className="mx-auto w-full max-w-[1200px] px-5 py-8 sm:px-8 lg:px-12 lg:py-14">
-        <Suspense fallback={<Cargando />}>
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: salida }}
-          >
-            <Outlet />
-          </motion.div>
-        </Suspense>
-      </main>
-    </div>
+        <AnimatePresence>
+          {menuAbierto && (
+            <div className="fixed inset-0 z-40 lg:hidden">
+              <motion.div
+                className="absolute inset-0 bg-[#08170f]/60 backdrop-blur-sm"
+                onClick={() => setMenuAbierto(false)}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                aria-hidden
+              />
+              <motion.div
+                className="absolute inset-y-0 left-0 w-[288px] shadow-lift"
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', stiffness: 360, damping: 36 }}
+              >
+                <Navegacion grupo="movil" alNavegar={() => setMenuAbierto(false)} />
+                <button
+                  type="button"
+                  onClick={() => setMenuAbierto(false)}
+                  aria-label="Cerrar menú"
+                  className="absolute top-6 right-4 grid size-9 cursor-pointer place-items-center rounded-lg text-[#f5f4ee]/70 hover:bg-white/10"
+                >
+                  <X className="size-5" />
+                </button>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        <main className="mx-auto w-full max-w-[1200px] px-4 py-7 sm:px-8 lg:px-12 lg:py-14 print:max-w-none print:px-0 print:py-0">
+          <Suspense fallback={<Cargando />}>
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: salida }}
+            >
+              <Outlet />
+            </motion.div>
+          </Suspense>
+        </main>
+
+        {campo && <NavegacionInferior alAbrirMenu={() => setMenuAbierto(true)} />}
+      </div>
+    </BusquedaProvider>
   )
 }

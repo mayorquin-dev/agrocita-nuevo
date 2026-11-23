@@ -4,6 +4,8 @@ const hora = new Intl.DateTimeFormat('es-HN', { hour: 'numeric', minute: '2-digi
 const mesCorto = new Intl.DateTimeFormat('es-HN', { month: 'short' })
 const diaSemana = new Intl.DateTimeFormat('es-HN', { weekday: 'long' })
 const moneda = new Intl.NumberFormat('es-HN', { style: 'currency', currency: 'HNL', maximumFractionDigits: 0 })
+const numero = new Intl.NumberFormat('es-HN', { maximumFractionDigits: 3 })
+const mesAnio = new Intl.DateTimeFormat('es-HN', { month: 'short', year: '2-digit' })
 
 function aFecha(valor: string): Date {
   if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
@@ -25,6 +27,9 @@ export const formato = {
   anio: (valor: string) => aFecha(valor).getFullYear(),
   diaSemana: (valor: string) => diaSemana.format(aFecha(valor)),
   moneda: (valor: number) => moneda.format(valor),
+  numero: (valor?: number | null) => (valor == null ? '—' : numero.format(valor)),
+  porcentaje: (valor?: number | null) => (valor == null ? '—' : `${numero.format(valor)}%`),
+  mesAnio: (valor: string) => mesAnio.format(aFecha(`${valor}-01`)).replace('.', ''),
   area: (valor?: number | null) => (valor == null ? '—' : `${valor} mz`),
   iniciales: (nombre: string) =>
     nombre
