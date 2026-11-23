@@ -206,7 +206,14 @@ public class VisitasHandler(
                 "Para completar la visita ciérrala con la firma del productor.");
         }
 
-        visita.Estado = dto.Estado!.Value;
+        if (!visita.PuedePasarA(dto.Estado!.Value))
+        {
+            throw new ConflictException(
+                $"Una visita {Etiqueta(visita.Estado)} no puede pasar a {Etiqueta(dto.Estado.Value)}. " +
+                "Los estados solo avanzan: pendiente, confirmada, en proceso y completada.");
+        }
+
+        visita.Estado = dto.Estado.Value;
         visita.MotivoCancelacion =
             visita.Estado == VisitStatus.Cancelada ? dto.Motivo?.Trim() : null;
 
@@ -214,6 +221,15 @@ public class VisitasHandler(
 
         return visita.ADto();
     }
+
+    private static string Etiqueta(VisitStatus estado) => estado switch
+    {
+        VisitStatus.Pendiente => "pendiente",
+        VisitStatus.Confirmada => "confirmada",
+        VisitStatus.EnProceso => "en proceso",
+        VisitStatus.Completada => "completada",
+        _ => "cancelada"
+    };
 
     public async Task<VisitaDto> ReprogramarAsync(
         int id, ReprogramarVisitaDto dto, CancellationToken ct)

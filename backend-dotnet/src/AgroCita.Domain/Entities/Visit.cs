@@ -54,6 +54,22 @@ public class Visit : ITenantEntity
 
     public bool EstaCerrada =>
         Estado is VisitStatus.Completada or VisitStatus.Cancelada;
+
+    /// <summary>
+    /// La visita solo avanza: Pendiente → Confirmada → En proceso → Completada.
+    /// Se puede cancelar mientras no esté cerrada. Completar exige la firma del productor.
+    /// </summary>
+    public static bool TransicionValida(VisitStatus actual, VisitStatus nuevo) =>
+        (actual, nuevo) switch
+        {
+            (VisitStatus.Pendiente, VisitStatus.Confirmada) => true,
+            (VisitStatus.Confirmada, VisitStatus.EnProceso) => true,
+            (VisitStatus.EnProceso, VisitStatus.Completada) => true,
+            (VisitStatus.Pendiente or VisitStatus.Confirmada or VisitStatus.EnProceso, VisitStatus.Cancelada) => true,
+            _ => false
+        };
+
+    public bool PuedePasarA(VisitStatus nuevo) => TransicionValida(Estado, nuevo);
 }
 
 public enum VisitStatus
