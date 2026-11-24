@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { Camera, ImageOff, LoaderCircle, MapPin, MapPinOff, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useArchivoProtegido } from '@/shared/api/archivos'
 import { useAccion } from '@/shared/forms/mutations'
 import { formato } from '@/shared/lib/format'
@@ -58,9 +58,12 @@ function Miniatura({ evidencia, alAbrir }: { evidencia: Evidencia; alAbrir: () =
           {cargando ? <LoaderCircle className="size-5 animate-spin" /> : error ? <ImageOff className="size-5" /> : null}
         </span>
       )}
-      <span className="absolute inset-x-0 bottom-0 flex items-center gap-1 bg-gradient-to-t from-black/70 to-transparent px-2 pt-6 pb-1.5 text-[11px] font-medium text-white">
-        {evidencia.latitud != null ? <MapPin className="size-3" aria-hidden /> : <MapPinOff className="size-3 opacity-70" aria-hidden />}
-        <span className="truncate">{formato.hora(evidencia.fechaCaptura)}</span>
+      <span className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 bg-gradient-to-t from-black/75 to-transparent px-2 pt-8 pb-1.5 text-white">
+        <span className="truncate text-[12px] leading-tight font-semibold">{evidencia.cultivo?.nombre ?? 'General de la finca'}</span>
+        <span className="flex items-center gap-1 text-[11px] font-medium opacity-90">
+          {evidencia.latitud != null ? <MapPin className="size-3 shrink-0" aria-hidden /> : <MapPinOff className="size-3 shrink-0 opacity-70" aria-hidden />}
+          <span className="truncate">{formato.hora(evidencia.fechaCaptura)}</span>
+        </span>
       </span>
     </button>
   )
@@ -126,15 +129,12 @@ function Visor({
   )
 }
 
-function NuevaEvidenciaForm({ visita, archivo, alCerrar }: { visita: VisitaDetalle; archivo: File; alCerrar: () => void }) {
+function NuevaEvidenciaForm({ visita, archivo, vista, alCerrar }: { visita: VisitaDetalle; archivo: File; vista: string; alCerrar: () => void }) {
   const [cultivoId, setCultivoId] = useState<number | undefined>(visita.cultivos.length === 1 ? visita.cultivos[0].id : undefined)
   const [descripcion, setDescripcion] = useState('')
   const [ubicacion, setUbicacion] = useState<Ubicacion | null | 'buscando'>('buscando')
   const [error, setError] = useState<string | null>(null)
-  const vista = useMemo(() => URL.createObjectURL(archivo), [archivo])
-
-  useEffect(() => () => URL.revokeObjectURL(vista), [vista])
-
+  const [errorCultivo, setErrorCultivo] = useState<string | null>(null)
   useEffect(() => {
     let vigente = true
     void obtenerUbicacion().then((resultado) => {
@@ -166,6 +166,10 @@ function NuevaEvidenciaForm({ visita, archivo, alCerrar }: { visita: VisitaDetal
   })
 
   const guardar = () => {
+    if (cultivoId === undefined) {
+      setErrorCultivo('Elija el cultivo que muestra la foto.')
+      return
+    }
     if (descripcion.length > 250) {
       setError('La descripción no puede superar los 250 caracteres.')
       return
@@ -200,8 +204,19 @@ function NuevaEvidenciaForm({ visita, archivo, alCerrar }: { visita: VisitaDetal
             </>
           )}
         </div>
-        <Select etiqueta="Cultivo o lote" opcional value={cultivoId ?? ''} onChange={(evento) => setCultivoId(evento.target.value ? Number(evento.target.value) : undefined)}>
-          <option value="">General de la finca</option>
+        <Select
+          etiqueta="Cultivo o lote"
+          error={errorCultivo ?? undefined}
+          value={cultivoId ?? ''}
+          onChange={(evento) => {
+            const valor = evento.target.value ? Number(evento.target.value) : undefined
+            setCultivoId(valor)
+            setErrorCultivo(valor === undefined ? 'Elija el cultivo que muestra la foto.' : null)
+          }}
+        >
+          <option value="" disabled>
+            Elija el cultivo…
+          </option>
           {visita.cultivos.map((cultivo) => (
             <option key={cultivo.id} value={cultivo.id}>
               {cultivo.nombre}
@@ -233,7 +248,12 @@ function NuevaEvidenciaForm({ visita, archivo, alCerrar }: { visita: VisitaDetal
 export function EvidenciasCard({ visita, puedeRegistrar }: { visita: VisitaDetalle; puedeRegistrar: boolean }) {
   const evidencias = useQuery({ queryKey: visitasKeys.evidencias(visita.id), queryFn: () => visitasApi.evidencias(visita.id) })
   const entrada = useRef<HTMLInputElement>(null)
-  const [archivo, setArchivo] = useState<File | null>(null)
+  const [foto, setFoto] = useState<{ archivo: File; vista: string } | null>(null)
+
+  const cerrarFoto = () => {
+    if (foto) URL.revokeObjectURL(foto.vista)
+    setFoto(null)
+  }
   const [viendo, setViendo] = useState<Evidencia | null>(null)
 
   return (
@@ -260,7 +280,7 @@ export function EvidenciasCard({ visita, puedeRegistrar }: { visita: VisitaDetal
         aria-hidden
         onChange={(evento) => {
           const elegido = evento.target.files?.[0]
-          if (elegido) setArchivo(elegido)
+          if (elegido) setFoto({ archivo: elegido, vista: URL.createObjectURL(elegido) })
           evento.target.value = ''
         }}
       />
@@ -297,7 +317,7 @@ export function EvidenciasCard({ visita, puedeRegistrar }: { visita: VisitaDetal
           }
         </QueryView>
       </div>
-      {archivo && <NuevaEvidenciaForm visita={visita} archivo={archivo} alCerrar={() => setArchivo(null)} />}
+      {foto && <NuevaEvidenciaForm visita={visita} archivo={foto.archivo} vista={foto.vista} alCerrar={cerrarFoto} />}
       {viendo && <Visor evidencia={viendo} visitaId={visita.id} puedeEliminar={puedeRegistrar} alCerrar={() => setViendo(null)} />}
     </Card>
   )

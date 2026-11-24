@@ -80,6 +80,9 @@ public class SubirEvidenciaValidator : AbstractValidator<SubirEvidenciaDto>
             .Must(tipo => tipo is not null && LimitesEvidencia.Tipos.ContainsKey(tipo))
             .WithMessage("Solo se aceptan fotos JPG, PNG o WEBP.");
 
+        RuleFor(x => x.CultivoId)
+            .NotNull().WithMessage("Elija el cultivo que muestra la foto.");
+
         RuleFor(x => x.Descripcion)
             .MaximumLength(250).WithMessage("La descripción no puede superar los 250 caracteres.");
 
