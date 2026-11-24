@@ -1,0 +1,24 @@
+﻿# Dependencias locales
+node_modules/
+
+# Archivos compilados
+dist/
+dist-ssr/
+
+# Git
+.git/
+.gitignore
+
+# Variables de entorno locales
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editores
+.vscode/
+.idea/
+.DS_Store
