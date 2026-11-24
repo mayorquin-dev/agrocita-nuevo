@@ -16,6 +16,7 @@ public static class DbInitializer
 
         var db = scope.ServiceProvider.GetRequiredService<AgroCitaDbContext>();
         var hash = scope.ServiceProvider.GetRequiredService<IPasswordHashService>();
+        var almacenamiento = scope.ServiceProvider.GetRequiredService<IFileStorage>();
 
         await db.Database.MigrateAsync();
 
@@ -25,7 +26,7 @@ public static class DbInitializer
         if (configuration.GetValue<bool>("Seed:DemoData") &&
             !await db.Companies.IgnoreQueryFilters().AnyAsync())
         {
-            await SembrarDemoAsync(db, hash);
+            await SembrarDemoAsync(db, hash, almacenamiento);
         }
     }
 
@@ -86,7 +87,8 @@ public static class DbInitializer
         await db.SaveChangesAsync();
     }
 
-    private static async Task SembrarDemoAsync(AgroCitaDbContext db, IPasswordHashService hash)
+    private static async Task SembrarDemoAsync(
+        AgroCitaDbContext db, IPasswordHashService hash, IFileStorage almacenamiento)
     {
         var planes = await db.Plans.ToListAsync();
         var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -198,6 +200,8 @@ public static class DbInitializer
         });
 
         await db.SaveChangesAsync();
+
+        await DemoHistorial.SembrarAsync(db, hash, almacenamiento, empresaId);
     }
 
     private static Company Empresa(
