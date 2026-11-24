@@ -1,4 +1,4 @@
-﻿services:
+services:
 
   # ==========================================
   # BASE DE DATOS POSTGRESQL
@@ -12,6 +12,8 @@
       POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432"
+    volumes:
+      - agrocita_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d agrocita"]
       interval: 5s
@@ -43,6 +45,8 @@
 
     ports:
       - "5071:8080"
+    volumes:
+      - agrocita_storage_data:/app/almacenamiento
 
     depends_on:
       postgres:
@@ -66,3 +70,7 @@
 
     depends_on:
       - api
+
+volumes:
+  agrocita_postgres_data:
+  agrocita_storage_data:

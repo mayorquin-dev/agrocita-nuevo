@@ -1,4 +1,4 @@
-﻿# AgroCita
+# AgroCita
 
 Plataforma web de gestión y seguimiento de asistencia agrícola (SaaS B2B multi-empresa).
 
@@ -32,60 +32,24 @@ El backend se encuentra en `backend-dotnet/`.
 
 La documentación del proyecto y el modelo entidad-relación están en `backend-dotnet/doc/`.
 
-## Cómo ejecutar el backend en local
+## Cómo ejecutar AgroCita con Docker
 
-1. Levantar PostgreSQL (con Docker):
+La forma recomendada de ejecutar el proyecto localmente es mediante Docker Compose.
 
-   ```bash
-   docker run -d --name agrocita-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=agrocita -p 5432:5432 postgres:16-alpine
-   ```
+Consulta la guía completa: [Guía de ejecución local con Docker](docs/DOCKER_LOCAL.md).
 
-2. Ejecutar la API:
+### Requisitos
 
-   ```bash
-   cd backend-dotnet
-   dotnet run --project src/AgroCita.API --launch-profile http
-   ```
+- Docker Desktop.
+- Docker Compose V2.
 
-La API queda en `http://localhost:5071` y la documentación interactiva en `http://localhost:5071/scalar`.
+### Iniciar la aplicación
 
-Al iniciar, la API aplica las migraciones y crea los datos iniciales. La configuración de desarrollo
-(`appsettings.Development.json`) ya trae la cadena de conexión local, una clave JWT solo para desarrollo
-y los orígenes permitidos por CORS (`http://localhost:5173`). Los secretos de usuario
-(`dotnet user-secrets`) y las variables de entorno tienen prioridad sobre ese archivo.
+Desde la raíz del proyecto:
 
-Si ya tenías una base de datos creada con la migración inicial, bórrala antes de ejecutar
-(`docker rm -f agrocita-postgres` y volver al paso 1), porque el modelo cambió por completo.
-
-### Usuarios de prueba (solo en desarrollo)
-
-| Rol | Correo | Contraseña |
-|---|---|---|
-| SuperAdmin | superadmin@agrocita.hn | SuperAdmin123* |
-| AdminEmpresa (AgroConsulta) | admin@agroconsulta.hn | Admin123* |
-| Tecnico (AgroConsulta) | tecnico@agroconsulta.hn | Tecnico123* |
-| Tecnico (AgroConsulta) | tecnico2@agroconsulta.hn | Tecnico123* |
-| Productor (AgroConsulta) | productor@agroconsulta.hn | Productor123* |
-| Productor (AgroConsulta) | productor2@agroconsulta.hn | Productor123* |
-| AdminEmpresa (AgroServicios) | admin@agroservicios.hn | Admin123* |
-
-Código de invitación de AgroConsulta para registrar productores: `AGROCONSU001`.
-
-Los datos de demostración de AgroConsulta incluyen un historial de unos cuatro meses: 8 solicitudes
-(atendidas, en atención, pendiente y rechazada), 4 visitas completadas con firma, informe, inspección
-de calidad y receta (también hay una visita reprogramada, una cancelada, una confirmada y una para hoy), recomendaciones y aplicaciones de
-fertilización, e inventario de insumos con entregas. Solo se crean cuando la base de datos está vacía:
-si ya la tenías, bórrala (`docker rm -f agrocita-postgres` y volver al paso 1) para verlos.
-
-### Variables para producción
-
-| Variable | Uso |
-|---|---|
-| `ConnectionStrings__DefaultConnection` | Cadena de conexión de PostgreSQL |
-| `JwtSettings__SecretKey` | Clave de firma del JWT (mínimo 32 caracteres) |
-| `Cors__AllowedOrigins__0` | URL del frontend |
-| `Seed__SuperAdminEmail` y `Seed__SuperAdminPassword` | Primer SuperAdmin |
-
+```powershell
+docker compose up -d --build
+```
 ## Frontend
 
 Aplicación web en `frontend/` con React 19, TypeScript y Vite.
