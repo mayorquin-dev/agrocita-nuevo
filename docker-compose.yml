@@ -1,0 +1,50 @@
+﻿services:
+
+  # ==========================================
+  # BASE DE DATOS POSTGRESQL
+  # ==========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: agrocita-postgres
+    environment:
+      POSTGRES_DB: agrocita
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d agrocita"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ==========================================
+  # API AGROCITA
+  # ==========================================
+  api:
+    build:
+      context: ./backend-dotnet
+      dockerfile: Dockerfile
+    container_name: agrocita-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=agrocita;Username=postgres;Password=postgres"
+
+      JwtSettings__SecretKey: "agrocita-clave-solo-para-desarrollo-local-no-usar-en-produccion-2026"
+
+      Seed__SuperAdminEmail: "superadmin@agrocita.hn"
+      Seed__SuperAdminPassword: "SuperAdmin123*"
+      Seed__DemoData: "true"
+
+      Almacenamiento__Ruta: "/app/almacenamiento"
+
+    ports:
+      - "5071:8080"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+

@@ -1,0 +1,26 @@
+﻿# Git
+.git
+.gitignore
+
+# Archivos de compilación
+**/bin/
+**/obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Resultados de pruebas
+**/TestResults/
+
+# Almacenamiento local
+**/almacenamiento/
+
+# Archivos temporales
+*.log
+.DS_Store
+Thumbs.db
+
+# Documentación no necesaria para compilar
+doc/
