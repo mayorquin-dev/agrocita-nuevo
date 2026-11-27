@@ -1,5 +1,7 @@
 # AgroCita
 
+[![CI](https://github.com/mayorquin-dev/agrocita-nuevo/actions/workflows/ci.yml/badge.svg)](https://github.com/mayorquin-dev/agrocita-nuevo/actions/workflows/ci.yml)
+
 Plataforma web de gestión y seguimiento de asistencia agrícola (SaaS B2B multi-empresa).
 
 ## Backend
@@ -105,3 +107,16 @@ La aplicación queda en `http://localhost:5173`. Para apuntar a otra API, crea u
 cd backend-dotnet
 dotnet test AgroCita.slnx
 ```
+
+## Integración continua
+
+GitHub Actions ejecuta `.github/workflows/ci.yml` en cada push a `main`, en cada pull request hacia `main`
+y de forma manual desde la pestaña **Actions**. El flujo tiene tres trabajos:
+
+| Trabajo | Qué comprueba |
+|---|---|
+| Backend (.NET) | `dotnet restore`, compilación en Release y `dotnet test` (los resultados quedan como artefacto) |
+| Frontend (React) | `npm ci`, `npm run lint` y `npm run build` (verificación de tipos y compilación) |
+| Imágenes Docker | `docker compose build` de la API y el frontend; corre solo si los dos anteriores pasan |
+
+Si un trabajo falla, el commit o el pull request aparece con una ✗ roja y GitHub muestra en qué paso falló.
