@@ -9,7 +9,7 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -78,3 +78,53 @@ jobs:
 
       - name: Compilar imágenes de docker-compose
         run: docker compose build
+
+  deploy:
+    name: Desplegar a producción
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    environment:
+      name: production
+      url: ${{ steps.vercel.outputs.url }}
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Desplegar API en Render
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::notice title=Render sin configurar::Falta el secreto RENDER_DEPLOY_HOOK_URL; no se desplegó la API."
+            exit 0
+          fi
+          curl --fail --silent --show-error --retry 3 --request POST \
+            "${RENDER_DEPLOY_HOOK_URL}&ref=${GITHUB_SHA}" > /dev/null
+          echo "Despliegue de la API solicitado a Render para ${GITHUB_SHA}."
+
+      - uses: actions/setup-node@v4
+        if: env.VERCEL_TOKEN != ''
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Desplegar frontend en Vercel
+        id: vercel
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::notice title=Vercel sin configurar::Faltan los secretos VERCEL_TOKEN, VERCEL_ORG_ID o VERCEL_PROJECT_ID; no se desplegó el frontend."
+            exit 0
+          fi
+          npm install --global vercel@latest
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          vercel build --prod --token="$VERCEL_TOKEN"
+          url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Frontend publicado en $url"

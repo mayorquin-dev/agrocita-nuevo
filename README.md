@@ -108,15 +108,19 @@ cd backend-dotnet
 dotnet test AgroCita.slnx
 ```
 
-## Integración continua
+## Integración y despliegue continuos
 
 GitHub Actions ejecuta `.github/workflows/ci.yml` en cada push a `main`, en cada pull request hacia `main`
-y de forma manual desde la pestaña **Actions**. El flujo tiene tres trabajos:
+y de forma manual desde la pestaña **Actions**. El flujo tiene cuatro trabajos:
 
-| Trabajo | Qué comprueba |
+| Trabajo | Qué hace |
 |---|---|
 | Backend (.NET) | `dotnet restore`, compilación en Release y `dotnet test` (los resultados quedan como artefacto) |
 | Frontend (React) | `npm ci`, `npm run lint` y `npm run build` (verificación de tipos y compilación) |
 | Imágenes Docker | `docker compose build` de la API y el frontend; corre solo si los dos anteriores pasan |
+| Desplegar a producción | Solo en push a `main` y si los tres anteriores pasan: despliega la API en Render y el frontend en Vercel |
 
-Si un trabajo falla, el commit o el pull request aparece con una ✗ roja y GitHub muestra en qué paso falló.
+Si un trabajo falla, el commit o el pull request aparece con una ✗ roja, GitHub muestra en qué paso falló
+y producción no se actualiza.
+
+La configuración de Neon, Render, Vercel y los secretos de GitHub está en [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md).
